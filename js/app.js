@@ -179,7 +179,7 @@ async function boot() {
   observe(document.body);
   store.subscribe(() => { drawTopbar(); drawTabbar(); });
   // прогресс мог измениться в другой вкладке
-  addEventListener('storage', (e) => { if (e.key === 'glossa:v1') { store.load(); shell.reload(); } });
+  addEventListener('storage', (e) => { if (e.key === 'srpski:v1') { store.load(); shell.reload(); } });
   // облачная синхронизация (если в data/sync.js задан endpoint и создан профиль)
   sync.hooks.busy = () => !!current?.focus;                       // не трогаем состояние посреди упражнения
   sync.hooks.onApplied = () => { applyTheme(); setScript(store.state.settings.script); if (!current?.focus) shell.reload(); };

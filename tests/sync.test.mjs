@@ -249,7 +249,7 @@ test('настройки конкретного устройства не син
 test('без сети — тихо откладывается; пустой endpoint — синхронизация выключена', async () => {
   const server = fakeServer();
   const A = device(server, { online: false });
-  A.storage.setItem('glossa:sync:v1', JSON.stringify({ phrase: generatePhrase() }));
+  A.storage.setItem('srpski:sync:v1', JSON.stringify({ phrase: generatePhrase() }));
   assert.equal(await A.s.sync(), false);
   assert.equal(A.s.status.state, 'waiting');
   assert.equal(server.calls.length, 0);

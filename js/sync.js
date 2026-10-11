@@ -3,7 +3,7 @@
 //  Профиль = случайная фраза-ключ (25 символов base32 без похожих, ~125 бит), создаётся на устройстве.
 //  Из фразы через HKDF-SHA256 выводятся две независимые ветви: идентификатор записи (128 бит, необратимо)
 //  и ключ AES-256-GCM. На сервер уходит только id и непрозрачный шифртекст. Фраза и никнейм лежат
-//  ТОЛЬКО в localStorage этого устройства (ключ 'glossa:sync:v1') и в экспорт прогресса не попадают.
+//  ТОЛЬКО в localStorage этого устройства (ключ 'srpski:sync:v1') и в экспорт прогресса не попадают.
 //  Конфликты: ETag + If-Match; при 412 — скачать, слить (js/merge.js, без потерь), повторить.
 
 import { mergeStates, sameState } from './merge.js';
@@ -13,7 +13,7 @@ import config from '../data/sync.js';
 export const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32 символа: нет I, O, 0, 1
 export const PHRASE_LEN = 25;                                  // 25 × 5 бит = 125 бит
 export const FORMAT_VERSION = 1;
-export const IDENT_KEY = 'glossa:sync:v1';
+export const IDENT_KEY = 'srpski:sync:v1';
 export const STALE_MS = 30 * 86_400_000;                       // «подновить» запись, чтобы TTL на сервере продлился
 export const LOCAL_ONLY = ['haptics', 'tts'];                  // настройки конкретного устройства — не синхронизируются
 

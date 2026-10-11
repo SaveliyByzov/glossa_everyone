@@ -1,6 +1,6 @@
-// Хранилище прогресса: localStorage['glossa:v1'], миграции схемы, экспорт/импорт JSON.
+// Хранилище прогресса: localStorage['srpski:v1'], миграции схемы, экспорт/импорт JSON.
 
-export const STORAGE_KEY = 'glossa:v1';
+export const STORAGE_KEY = 'srpski:v1';
 export const SCHEMA_VERSION = 1;
 
 export function emptyState() {

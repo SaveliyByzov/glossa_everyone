@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <script>
-    // Оформление и тема — до первой отрисовки (без вспышки). Источник: localStorage['glossa:v1'].settings
+    // Оформление и тема — до первой отрисовки (без вспышки). Источник: localStorage['srpski:v1'].settings
     (function () {
       var r = document.documentElement, s = {};
-      try { s = (JSON.parse(localStorage.getItem('glossa:v1')) || {}).settings || {}; } catch (e) {}
+      try { s = (JSON.parse(localStorage.getItem('srpski:v1')) || {}).settings || {}; } catch (e) {}
       r.dataset.style = 'b';
       var t = s.theme === 'light' || s.theme === 'dark' ? s.theme : null;
       if (t) r.dataset.theme = t;
