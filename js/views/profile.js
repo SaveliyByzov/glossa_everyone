@@ -8,6 +8,7 @@ import { rankFor, currentStreak, dailyGoal, achievementProgress, checkGoal, vaca
 import { toast, confirmDialog, applyTheme } from '../ui.js';
 import { ttsSupported } from '../tts.js';
 import { syncSection } from './sync-section.js';
+import { restart as restartOnboarding } from './onboarding.js';
 import { view, section, progress, roman, fmtNum } from './common.js';
 
 export async function render(_, shell) {
@@ -148,6 +149,9 @@ function settings(state, shell) {
     goalChips(config.dailyGoals, dailyGoal(state), (g) => { store.update((s) => { s.settings.dailyGoal = g; checkGoal(s); }); }), true));
   if ('vibrate' in navigator) rows.push(setting('Вибрация', 'Короткий отклик на ответы.', switchBtn(st.haptics, (v) => set('haptics', v), 'Вибрация')));
   if (ttsSupported()) rows.push(setting('Озвучка', 'Только если в системе есть голос языка (сербский).', switchBtn(st.tts, (v) => set('tts', v), 'Озвучка')));
+
+  rows.push(setting('Знакомство', 'Выбор уровня, алфавита, цели и профиля заново. Прогресс не сбрасывается.',
+    h('button', { class: 'btn btn--outline btn--sm', type: 'button', onclick: () => restartOnboarding() }, 'Пройти знакомство снова')));
 
   // отпуск
   const vac = activeVacation(state) || (state.stats.streak.vacations || []).find((v) => v.from > dayKey());

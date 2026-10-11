@@ -167,7 +167,7 @@ export function createSync({
     } finally { timers.clear(t); }
   }
 
-  async function runOnce({ mustExist }) {
+  async function runOnce({ mustExist, ignoreBusy = false }) {
     const idn = await identity();
     if (!idn) return;
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -181,7 +181,7 @@ export function createSync({
         updated = Number(res.headers.get('X-Updated')) || 0;
       } else throw httpError(res.status);
 
-      if (hooks.busy()) { setStatus('waiting', 'Синхронизация начнётся после упражнения'); schedule(5000); return; }
+      if (!ignoreBusy && hooks.busy()) { setStatus('waiting', 'Синхронизация начнётся после упражнения'); schedule(5000); return; }
 
       const local = st.state;
       if (remote) {
@@ -221,17 +221,17 @@ export function createSync({
   }
 
   /** Полная синхронизация. Параллельные вызовы объединяются. */
-  function sync({ mustExist = false } = {}) {
+  function sync({ mustExist = false, ignoreBusy = false } = {}) {
     if (!base || !readIdent()) return Promise.resolve(false);
     if (running) return running;
     if (!online()) { setStatus('waiting', 'Ждёт сети'); return Promise.resolve(false); }
     setStatus('syncing');
-    running = runOnce({ mustExist })
+    running = runOnce({ mustExist, ignoreBusy })
       .then(() => true)
       .catch((err) => {
         if (err.code === 'notfound') { setStatus('error', err.message); throw err; }
         if (err.code === 'offline') setStatus('waiting', 'Ждёт сети');
-        else setStatus('error', err instanceof SyncError ? err.message : 'Ошибка синхронизации');
+        else { setStatus('error', err instanceof SyncError ? err.message : 'Ошибка синхронизации'); if (err.code !== 'ratelimit') schedule(60_000); else schedule(120_000); }
         return false;
       })
       .finally(() => { running = null; });
@@ -255,19 +255,22 @@ export function createSync({
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     setNickname(name) { const i = readIdent(); if (i) writeIdent({ ...i, nickname: String(name).trim().slice(0, 40) }); },
     sync, schedule,
+    /** Немедленная синхронизация (после законченного урока), не ожидая конца экрана и debounce. */
+    flush() { timers.clear(timer); timer = null; return sync({ ignoreBusy: true }); },
 
-    /** Создать новый профиль: фраза рождается здесь, текущий прогресс уходит (зашифрованным) на сервер. */
-    async createProfile() {
+    /** Создать новый профиль: фраза рождается здесь, текущий прогресс уходит (зашифрованным) на сервер.
+     *  allowOffline: нет сети — ключ остаётся на устройстве, прогресс загрузится при первой же синхронизации
+     *  (запись создаётся с If-None-Match, коллизий нет); ответ { phrase, pending: true }. Иначе при обрыве профиль откатывается. */
+    async createProfile({ allowOffline = false } = {}) {
       if (!base) throw new SyncError('disabled', 'Облачная синхронизация не подключена');
       writeIdent({ phrase: generatePhrase(rng), nickname: '', createdAt: now() });
       setStatus('syncing');
       await sync();
-      if (status.state !== 'synced') {                  // профиль без записи на сервере бесполезен — откатываем
-        const msg = status.state === 'waiting' ? 'Нет связи с сервером — профиль не создан' : status.message;
-        writeIdent(null); setStatus('off');
-        throw new SyncError('http', msg);
-      }
-      return this.phrase;
+      if (status.state === 'synced') return allowOffline ? { phrase: this.phrase, pending: false } : this.phrase;
+      if (allowOffline && status.state === 'waiting') { schedule(30_000); return { phrase: this.phrase, pending: true }; }
+      const msg = status.state === 'waiting' ? 'Нет связи с сервером — профиль не создан' : status.message;
+      writeIdent(null); setStatus('off');       // профиль без записи на сервере бесполезен — откатываем
+      throw new SyncError('http', msg);
     },
 
     /** Войти по фразе на этом устройстве; прогресс сольётся с облачным, ничего не теряется. */

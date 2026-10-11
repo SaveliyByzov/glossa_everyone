@@ -261,3 +261,33 @@ test('без сети — тихо откладывается; пустой endp
   await assert.rejects(() => failing.createProfile());
   assert.equal(failing.hasProfile, false);
 });
+
+test('flush: после законченного урока уходит сразу, даже когда экран занят (busy)', async () => {
+  const server = fakeServer();
+  const A = device(server), B = device(server);
+  const phrase = await A.s.createProfile();
+  await B.s.joinProfile(phrase);
+  A.s.hooks.busy = () => true;
+  A.store.update((s) => { s.achievements.lessonDone = 1; });
+  await A.s.sync();                                      // обычная синхронизация ждёт конца упражнения
+  await B.s.sync();
+  assert.ok(!B.store.state.achievements.lessonDone);
+  assert.equal(await A.s.flush(), true);                 // flush не ждёт
+  await B.s.sync();
+  assert.ok(B.store.state.achievements.lessonDone);
+});
+
+test('createProfile({allowOffline}): без сети ключ остаётся, позже синхронизация создаёт запись', async () => {
+  const server = fakeServer();
+  let online = false;
+  const A = device(server, { online: false });
+  await assert.rejects(() => A.s.createProfile(), /Нет связи/);                 // по умолчанию — откат
+  assert.equal(A.s.hasProfile, false);
+  const r = await A.s.createProfile({ allowOffline: true });
+  assert.equal(r.pending, true);
+  assert.equal(A.s.hasProfile, true);
+  assert.equal(server.kv.size, 0);
+  const B = createSync({ store: A.store, endpoint: 'https://sync.example', app: 'glossa', storage: A.storage, fetchFn: server.fetchFn, online: () => true, timers: { set: () => 0, clear: () => {} } });
+  assert.equal(await B.flush(), true);
+  assert.equal(server.kv.size, 1);
+});

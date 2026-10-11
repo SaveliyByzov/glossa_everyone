@@ -16,6 +16,8 @@ import * as reviewView from './views/review.js';
 import * as vocabView from './views/vocab.js';
 import * as wordsView from './views/words.js';
 import * as profileView from './views/profile.js';
+import * as onboardingView from './views/onboarding.js';
+import { loadOnb, ONB_KEY, shouldShowOnboarding } from './onboarding.js';
 import * as sessionView from './views/session.js';
 import * as referenceView from './views/reference.js';
 import { setScript, getScript, observe } from './script.js';
@@ -29,6 +31,7 @@ let routeToken = 0;
 // --- маршруты ---------------------------------------------------------------------------
 route('/', home.render);
 route('/profile', profileView.render);
+route('/start', onboardingView.render);
 route('/join/:phrase', async ({ phrase }, sh) => {
   // фраза из ссылки сразу уходит из адресной строки и истории; хэш на сервер не отправляется
   history.replaceState(null, '', `${location.pathname}${location.search}#/profile`);
@@ -63,6 +66,7 @@ const shell = {
     const old = app.querySelector(':scope > .view');
     if (old) old.replaceWith(meta.el); else app.insertBefore(meta.el, tabbar);
     app.classList.toggle('is-focus', !!meta.focus);
+    app.classList.toggle('is-bare', !!meta.bare);      // знакомство: без шапки и вкладок
     shell.setLang(meta.lang);
     drawTopbar();
     drawTabbar();
@@ -184,6 +188,10 @@ async function boot() {
   sync.hooks.busy = () => !!current?.focus;                       // не трогаем состояние посреди упражнения
   sync.hooks.onApplied = () => { applyTheme(); setScript(store.state.settings.script); if (!current?.focus) shell.reload(); };
   sync.start();
+  // первый запуск: знакомство (только с главной; ссылки на конкретные экраны и «#/join» не перехватываем)
+  let storageHasOnb = true;
+  try { storageHasOnb = localStorage.getItem(ONB_KEY) !== null; } catch {}
+  if (currentPath() === '/' && shouldShowOnboarding({ onb: loadOnb(), state: store.state, hasProfile: sync.hasProfile, storageHasOnb })) history.replaceState(null, '', '#/start');
   start(onRoute);
   registerSW();
 }
