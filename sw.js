@@ -1,6 +1,6 @@
 // Service Worker Glossa — СГЕНЕРИРОВАН tools/build-sw.mjs, не редактируйте вручную.
 // Стратегия: cache-first для всего приложения; новые версии — по сообщению SKIP_WAITING из приложения.
-const VERSION = '634d0f1367a1';
+const VERSION = 'a2ba159d187a';
 const CACHE = `srpski-${VERSION}`;
 const PRECACHE = [
   "./",
@@ -9,7 +9,6 @@ const PRECACHE = [
   "./css/sr-orn.css",
   "./css/sr.css",
   "./css/style-b.css",
-  "./css/style-c.css",
   "./css/tokens.css",
   "./data/courses.js",
   "./data/pedagogy.js",

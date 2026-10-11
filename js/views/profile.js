@@ -5,7 +5,7 @@ import { store, downloadBackup } from '../store.js';
 import { config } from '../config.js';
 import { dayKey, plural } from '../util.js';
 import { rankFor, currentStreak, dailyGoal, achievementProgress, checkGoal, vacationLeft, activeVacation, startVacation, endVacation, shiftDay } from '../gamify.js';
-import { toast, confirmDialog, applyTheme, applyStyle } from '../ui.js';
+import { toast, confirmDialog, applyTheme } from '../ui.js';
 import { ttsSupported } from '../tts.js';
 import { view, section, progress, roman, fmtNum } from './common.js';
 
@@ -125,15 +125,12 @@ function setting(label, hint, control, stack = false) {
     control);
 }
 
-/** Оформление: стиль (игровое / типографичное / скрипторий) + цветовая тема (авто / светлая / тёмная). */
+/** Оформление: цветовая тема (авто / светлая / тёмная). Стиль один — игровое (B). */
 function appearance(state) {
   const st = state.settings;
-  const set = (k, v) => store.update((s) => { s.settings[k] = v; });
   const rows = [
-    setting('Стиль', 'Игровое — яркое, с островами и пружинными кнопками. Типографичное — крупный шрифт и строгая сетка.',
-      segmented([['b', 'Игровое'], ['c', 'Типографика']], ['c', 'scriptorium'].includes(st.style) ? st.style : 'b', (v) => { set('style', v); applyStyle(v); }, 'Стиль оформления'), true),
     setting('Цвет', null,
-      segmented([['auto', 'Авто'], ['light', 'Светлая'], ['dark', 'Тёмная']], st.theme || 'auto', (t) => { set('theme', t); applyTheme(t); }, 'Цветовая тема'), true),
+      segmented([['auto', 'Авто'], ['light', 'Светлая'], ['dark', 'Тёмная']], st.theme || 'auto', (t) => { store.update((s) => { s.settings.theme = t; }); applyTheme(t); }, 'Цветовая тема'), true),
   ];
   return section('Оформление', null, h('div', { class: 'settings' }, rows));
 }

@@ -67,11 +67,9 @@ export function confirmDialog({ title, text = '', ok = 'Да', cancel = 'Отм�
 }
 
 // --- тема ----------------------------------------------------------------------------------
-export const STYLES = ['b', 'c', 'scriptorium'];
-
-/** Оформление: data-style на <html> (b — игровое, c — типографичное, scriptorium — прежнее). */
-export function applyStyle(style = store.state.settings.style) {
-  document.documentElement.dataset.style = STYLES.includes(style) ? style : 'b';
+/** Оформление одно — игровое (B): data-style="b" на <html>. */
+export function applyStyle() {
+  document.documentElement.dataset.style = 'b';
 }
 
 export function applyTheme(theme = store.state.settings.theme) {

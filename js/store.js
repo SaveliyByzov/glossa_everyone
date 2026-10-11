@@ -8,7 +8,7 @@ export function emptyState() {
     app: 'glossa',
     version: SCHEMA_VERSION,
     createdAt: Date.now(),
-    settings: { theme: 'auto', style: 'b', dailyGoal: null, haptics: true, tts: true, crossLanguage: null, script: 'lat' },
+    settings: { theme: 'auto', dailyGoal: null, haptics: true, tts: true, crossLanguage: null, script: 'lat' },
     stats: {
       xpTotal: 0,
       xpByDay: {},             // 'YYYY-MM-DD' → XP

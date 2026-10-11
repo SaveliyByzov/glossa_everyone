@@ -9,7 +9,7 @@
     (function () {
       var r = document.documentElement, s = {};
       try { s = (JSON.parse(localStorage.getItem('glossa:v1')) || {}).settings || {}; } catch (e) {}
-      r.dataset.style = s.style === 'c' || s.style === 'scriptorium' ? s.style : 'b';
+      r.dataset.style = 'b';
       var t = s.theme === 'light' || s.theme === 'dark' ? s.theme : null;
       if (t) r.dataset.theme = t;
       r.dataset.mode = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -30,7 +30,6 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/style-b.css">
-  <link rel="stylesheet" href="css/style-c.css">
   <link rel="stylesheet" href="css/sr-orn.css">
   <link rel="stylesheet" href="css/sr.css">
   <link rel="modulepreload" href="js/app.js">
