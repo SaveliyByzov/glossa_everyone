@@ -7,7 +7,7 @@ workers_dev = true
 # Создайте namespace: npx wrangler kv namespace create BLOBS — и вставьте выданный id сюда.
 [[kv_namespaces]]
 binding = "BLOBS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "8ff181548d93441bb43bfe4ec3f43b4c"
 
 # Никаких логов: в коде нет console.*, а платформенные логи и трассировка выключены.
 [observability]

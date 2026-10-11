@@ -109,3 +109,6 @@ curl -i https://glossa-sync.<аккаунт>.workers.dev/v1/blob/glossa.00000000
 
 Пользователь: «Удалить данные на сервере» (запрос `DELETE`) — запись удаляется, устройство выходит из профиля.
 Владелец: удалить ключ в панели KV либо удалить весь namespace.
+
+## Развёрнуто
+Worker `glossa-sync` развёрнут в аккаунте владельца: https://glossa-sync.glossa-788695.workers.dev (проверка: /v1/health). Адрес вписан в `data/sync.js`.
