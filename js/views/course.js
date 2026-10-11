@@ -51,7 +51,7 @@ function unitCard(course, cs, unit, ui, next, now) {
   const status = boss.passed ? h('span', { class: 'badge badge--gold', title: 'Испытание юнита пройдено' }, '★')
     : !open ? (() => { const s = icon('lock'); s.style.color = 'var(--ink-3)'; s.setAttribute('aria-label', 'Закрыт'); s.removeAttribute('aria-hidden'); return s; })()
       : h('span', { class: unitPassed(course, cs, unit) ? 'badge badge--ok' : 'badge' }, `${done}/${unit.lessons.length}`);
-  const card = h('section', { class: ['unit', !open && 'is-locked', isCurrent && 'is-current'] },
+  const card = h('section', { class: ['unit', !open && 'is-locked', isCurrent && 'is-current'], dataset: { u: String(ui + 1) } },
     h('header', { class: 'unit__head' },
       h('span', { class: 'unit__num' }, roman(ui + 1)),
       h('div', null,
@@ -59,6 +59,7 @@ function unitCard(course, cs, unit, ui, next, now) {
         hasTarget ? h('p', { class: 'unit__sub' }, renderInline(unit.titleRu)) : null),
       status));
 
+  card.style.setProperty('--p', String(unit.lessons.length ? done / unit.lessons.length : 0));   // «нить»: доля пройденных уроков (css/sr.css)
   if (!open) {
     card.append(h('p', { class: 'unit__summary' }, placementAllowed(course) ? 'Знаете тему? Сдайте короткий тест и откройте юнит сразу.' : 'Откроется после предыдущего юнита.'));
   } else if (unit.summary) {

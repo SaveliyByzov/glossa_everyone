@@ -3,7 +3,7 @@ import { h, icon, append, clear } from './dom.js';
 import { store } from './store.js';
 import { loadConfig } from './config.js';
 import { route, start, currentPath, match } from './router.js';
-import { applyTheme, toast } from './ui.js';
+import { applyTheme, toast, flipView } from './ui.js';
 import { todayXp, dailyGoal, currentStreak } from './gamify.js';
 import { dueBreakdown } from './views/review.js';
 import { empty, fmtNum } from './views/common.js';
@@ -98,7 +98,7 @@ function scriptToggle() {
     class: 'topbar__script', type: 'button',
     'aria-label': `Показывать сербский: ${cyr ? 'кириллица' : 'латиница'}. Переключить`,
     title: 'Алфавит: латиница / кириллица',
-    onclick: () => { store.update((s) => { s.settings.script = cyr ? 'lat' : 'cyr'; }); setScript(cyr ? 'lat' : 'cyr'); shell.reload(); },
+    onclick: () => flipView(() => { store.update((s) => { s.settings.script = cyr ? 'lat' : 'cyr'; }); setScript(cyr ? 'lat' : 'cyr'); shell.reload(); }),
   }, cyr ? 'Ћир' : 'Lat');
 }
 

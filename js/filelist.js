@@ -3,6 +3,7 @@ export default [
  "data/courses.js",
  "data/pedagogy.js",
  "data/sr/index.js",
+ "data/sr/proverbs.js",
  "data/sr/reference.js",
  "data/sr/u01.ex.js",
  "data/sr/u01.js",

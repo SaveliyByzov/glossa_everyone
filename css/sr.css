@@ -1,0 +1,174 @@
+/* «Vez» — сербский слой оформления: орнамент счётной вышивки и пирот-килимов (css/sr-orn.css генерируется
+   tools/gen-sr-orn.mjs). Подключается после style-b/style-c; правила плоские (специфичность ≥ .класс, позже по порядку).
+   Принципы: приглушённо, тонким слоем; цвет орнамента — токены темы; движение только по делу (нить, печать, смена алфавита). */
+
+@property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+:root {
+  --vez-red: oklch(0.56 0.13 25);
+  --vez-blue: oklch(0.52 0.11 258);
+  --vez-gold: oklch(0.74 0.12 82);
+}
+:root[data-mode="dark"] {
+  --vez-red: oklch(0.70 0.12 25);
+  --vez-blue: oklch(0.72 0.10 258);
+  --vez-gold: oklch(0.80 0.12 84);
+}
+
+/* ---- Типографика сербского (латиница с č ć š ž đ и кириллица с ђ ј љ њ ћ џ) ---- */
+[lang="sr"], [lang^="sr-"] { font-kerning: normal; font-variant-ligatures: common-ligatures; font-feature-settings: "locl" 1, "kern" 1; hyphens: manual; text-wrap: pretty; }
+
+/* ---- Лента-кант: ромбы-«вез» под шапкой экрана и зигзаг под топбаром ----- */
+.view--course > .view__head { position: relative; margin-bottom: var(--s-4); }
+.view--course > .view__head::after {
+  content: ""; display: block; height: 10px; margin-top: var(--s-3); opacity: 0.7;
+  background: linear-gradient(90deg, var(--vez-red), var(--vez-gold) 50%, var(--vez-blue));
+  -webkit-mask: var(--o-band) 0 0 / 16px 10px repeat-x; mask: var(--o-band) 0 0 / 16px 10px repeat-x;
+}
+.topbar::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 6px; pointer-events: none; opacity: 0.55;
+  background: linear-gradient(90deg, var(--vez-red), var(--vez-gold) 50%, var(--vez-blue));
+  -webkit-mask: var(--o-zig) 0 0 / 12px 6px repeat-x; mask: var(--o-zig) 0 0 / 12px 6px repeat-x;
+}
+
+/* ---- Шапка курса: буквица Ђ в «вышитом» кольце (игровое) ----------------- */
+:root[data-style="b"] .course-head .course-card__glyph { position: relative; }
+:root[data-style="b"] .course-head .course-card__glyph::before {
+  content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px dotted var(--vez-gold); pointer-events: none;
+}
+
+/* ---- Особые буквы: герои алфавита ---------------------------------------- */
+.heroes { display: grid; gap: var(--s-2); margin-bottom: var(--s-6); text-decoration: none; color: inherit; }
+.heroes__row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--s-2); }
+.heroes__tile {
+  display: grid; place-items: center; align-content: center; gap: 0; min-height: 68px;
+  border: 1.5px solid var(--line); border-bottom: 3px solid var(--vez-gold); border-radius: var(--r-md); background: var(--surface);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.heroes__tile b { font-family: var(--font-text); font-size: 1.75rem; line-height: 1.1; font-weight: 700; color: var(--accent-ink); }
+.heroes__tile i { font-style: normal; font-size: 0.8125rem; font-weight: 600; color: var(--ink-2); }
+.heroes:active .heroes__tile { transform: scale(0.97); }
+.heroes__cap { display: flex; align-items: center; justify-content: center; gap: var(--s-1); min-height: 44px; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-2); }
+.heroes__cap .icon { width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) { .heroes:hover .heroes__tile { border-color: var(--vez-gold); } }
+
+/* ---- Пословица дня -------------------------------------------------------- */
+.proverb { position: relative; margin: 0 0 var(--s-5); padding: calc(var(--s-4) + 8px) var(--s-5) var(--s-4); border: 1.5px solid var(--line); border-radius: var(--r-lg); background: var(--surface); overflow: hidden; }
+.proverb::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--vez-gold); opacity: 0.8;
+  -webkit-mask: var(--o-zig) 0 0 / 16px 8px repeat-x; mask: var(--o-zig) 0 0 / 16px 8px repeat-x;
+}
+.proverb__label { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--gold-ink); margin-bottom: var(--s-1); }
+.proverb__text { margin: 0; font-family: var(--font-text); font-style: italic; font-size: 1.25rem; line-height: 1.3; color: var(--ink); }
+.proverb__ru { margin: var(--s-1) 0 0; font-size: var(--fs-sm); color: var(--ink-2); }
+
+/* ---- Карта: у каждого юнита свой цвет, мотив и «нить» прогресса ----------- */
+.unit[data-u] {
+  --accent: oklch(var(--accent-l) var(--hue-c) var(--hue));
+  --accent-ink: oklch(var(--accent-ink-l) var(--hue-c) var(--hue));
+  --accent-soft: oklch(var(--accent-soft-l) calc(var(--hue-c) * var(--accent-soft-c)) var(--hue));
+  --accent-line: color-mix(in oklch, var(--accent) 45%, var(--line));
+  --accent-edge: oklch(calc(var(--accent-l) - 0.14) calc(var(--hue-c) * 1.3) var(--hue));
+  --orn-ink: var(--accent);
+}
+.unit[data-u="1"]  { --hue: 258; --hue-c: 0.115; --motif: var(--o-m1); }
+.unit[data-u="2"]  { --hue: 25;  --hue-c: 0.13;  --motif: var(--o-m2); }
+.unit[data-u="3"]  { --hue: 85;  --hue-c: 0.10;  --motif: var(--o-m3); }
+.unit[data-u="4"]  { --hue: 165; --hue-c: 0.085; --motif: var(--o-m4); }
+.unit[data-u="5"]  { --hue: 330; --hue-c: 0.10;  --motif: var(--o-m5); }
+.unit[data-u="6"]  { --hue: 50;  --hue-c: 0.12;  --motif: var(--o-m6); }
+.unit[data-u="7"]  { --hue: 225; --hue-c: 0.09;  --motif: var(--o-m7); }
+.unit[data-u="8"]  { --hue: 130; --hue-c: 0.09;  --motif: var(--o-m8); }
+.unit[data-u="9"]  { --hue: 10;  --hue-c: 0.12;  --motif: var(--o-m9); }
+.unit[data-u="10"] { --hue: 285; --hue-c: 0.12;  --motif: var(--o-m10); }
+:root[data-style="b"] .unit[data-u] { --orn-ink: var(--on-accent); }
+.unit.is-locked[data-u] { --orn-ink: var(--ink-3); }
+
+.unit__head { position: relative; overflow: hidden; padding-bottom: calc(var(--s-3) + 14px); }
+.unit__head::before {                     /* мотив-водяной знак справа */
+  content: ""; position: absolute; right: -6px; top: 50%; width: 76px; height: 76px; transform: translateY(-58%); pointer-events: none; opacity: 0.2;
+  background: var(--orn-ink);
+  -webkit-mask: var(--motif) center / contain no-repeat; mask: var(--motif) center / contain no-repeat;
+}
+.unit__head::after {                      /* нить: пунктир-стежки, заполняется по мере прохождения */
+  content: ""; position: absolute; left: var(--s-4); right: var(--s-4); bottom: 9px; height: 4px; pointer-events: none; border-radius: 2px;
+  background:
+    repeating-linear-gradient(90deg, var(--orn-ink) 0 6px, transparent 6px 10px) 0 0 / calc(var(--p) * 100%) 100% no-repeat,
+    repeating-linear-gradient(90deg, color-mix(in oklch, var(--orn-ink) 32%, transparent) 0 6px, transparent 6px 10px);
+  animation: thread-in 700ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+@keyframes thread-in { from { --p: 0; } }
+.unit.is-locked .unit__head::after { display: none; }
+.unit__head > * { position: relative; z-index: 1; }
+
+/* пройденный урок — «вышитая» отметка */
+:root[data-style="b"] .lesson-node.is-done:not(.is-locked) .lesson-node__mark { outline: 2px dotted var(--vez-gold); outline-offset: 3px; }
+
+/* ---- Пустые состояния: розетта вместо трёх ромбов ------------------------- */
+.empty__orn { display: block; width: 46px; height: 46px; margin: 0 auto var(--s-3); background: var(--accent); -webkit-mask: var(--o-m8) center / contain no-repeat; mask: var(--o-m8) center / contain no-repeat; }
+.empty__orn > i { display: none; }
+
+/* ---- Итог и награды: печать в стежках ------------------------------------- */
+.result__seal { position: relative; }
+:root:not([data-style="c"]) .result__seal::after {
+  content: ""; position: absolute; inset: -18px; border-radius: 50%; border: 3px dotted var(--accent-line); pointer-events: none;
+  animation: stitch-spin 900ms cubic-bezier(0.23, 1, 0.32, 1) 160ms both;
+}
+:root:not([data-style="c"]) .result__seal--perfect::after { border-color: var(--vez-gold); }
+:root:not([data-style="c"]) .result__seal--retry::after { display: none; }
+@keyframes stitch-spin { from { opacity: 0; transform: rotate(-140deg) scale(0.86); } to { opacity: 1; transform: none; } }
+.achievement.is-earned .achievement__icon { outline: 2px dotted var(--vez-gold); outline-offset: 3px; }
+
+/* ---- Справочник: алфавит плитками ---------------------------------------- */
+.abc { display: grid; gap: var(--s-3); }
+.abc__info { margin: 0; padding: var(--s-3) var(--s-4); min-height: 3.4em; border-radius: var(--r-md); background: var(--accent-soft); color: var(--ink); font-size: var(--fs-sm); }
+.abc__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.abc__tile {
+  display: grid; justify-items: center; align-content: center; min-height: 64px; padding: 4px 0;
+  border: 1.5px solid var(--line); border-radius: var(--r-md); background: var(--bg); color: var(--ink); font: inherit;
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms, border-color 140ms;
+}
+.abc__tile b { font-family: var(--font-text); font-size: 1.5rem; line-height: 1.1; color: var(--accent-ink); }
+.abc__tile i { font-style: normal; font-size: 0.8125rem; font-weight: 700; }
+.abc__tile small { font-size: 0.6875rem; color: var(--ink-2); line-height: 1.2; }
+.abc__tile:active { transform: scale(0.96); }
+.abc__tile.is-special { border-color: var(--vez-gold); box-shadow: inset 0 -3px 0 var(--vez-gold); }
+.abc__tile.is-on { background: var(--accent-soft); border-color: var(--accent); }
+
+/* ---- Справочник: падежи карточками, окончания цветом ---------------------- */
+.cases { display: grid; gap: var(--s-2); }
+.case {
+  --accent-ink: oklch(var(--accent-ink-l) 0.15 var(--hue));
+  border: 1.5px solid var(--line); border-radius: var(--r-md); background: var(--bg);
+}
+.case[open] { border-color: oklch(var(--accent-l) 0.10 var(--hue)); }
+.case > summary {
+  position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 2px var(--s-3); align-items: center;
+  min-height: 56px; padding: var(--s-3) 2.5rem var(--s-3) var(--s-3); cursor: pointer; list-style: none;
+}
+.case > summary::-webkit-details-marker { display: none; }
+.case > summary::after { content: "+"; position: absolute; right: var(--s-4); top: var(--s-3); font-weight: 700; color: var(--accent-ink); }
+.case[open] > summary::after { content: "–"; }
+.case__no { grid-row: span 2; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: oklch(var(--accent-l) 0.12 var(--hue)); color: var(--bg); font-weight: 800; font-size: var(--fs-sm); }
+.case__name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s-2); }
+.case__name b { font-family: var(--font-text); font-size: var(--fs-md); color: var(--ink); }
+.case__name small { color: var(--ink-2); font-size: var(--fs-sm); }
+.case__forms { display: flex; flex-wrap: wrap; gap: 2px var(--s-3); font-family: var(--font-text); font-size: var(--fs-md); color: var(--ink); }
+.case__end { font-style: normal; font-weight: 800; color: var(--accent-ink); background: oklch(var(--accent-soft-l) 0.05 var(--hue)); border-radius: 3px; padding: 0 2px; }
+.case__use { margin: 0; padding: 0 var(--s-4) var(--s-4) calc(2rem + var(--s-3) * 2); font-size: var(--fs-sm); color: var(--ink-2); }
+.case__legend { margin: 0 0 var(--s-2); font-size: var(--fs-sm); }
+
+/* ---- Движение: при reduced-motion нить и печать без анимации ------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .unit__head::after, .result__seal::after { animation: none !important; }
+  .abc__tile, .heroes__tile { transition: none; }
+  .abc__tile:active, .heroes:active .heroes__tile { transform: none; }
+}
+
+/* ---- Упражнения: сербские буквы крупнее (ћ ђ љ њ џ и č ć đ читаются на 375px) ---- */
+.pair[lang^="sr"], .tile[lang^="sr"], .option__text[lang^="sr"] { font-size: 1.375rem; line-height: 1.2; }
+.pair[lang^="sr"] { min-height: 60px; }
+.ex__q[lang^="sr"] { letter-spacing: 0.005em; }
+
+/* «Типографика»: длинные подписи таба («Повторение», «Справочник») не слипаются на 375px */
+:root[data-style="c"] .tabbar__item { font-size: 0.625rem; letter-spacing: 0; padding-inline: 2px; }

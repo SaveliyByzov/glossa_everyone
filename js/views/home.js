@@ -1,5 +1,5 @@
 // Главная: приветствие, повторение на сегодня / дневная цель, список курсов.
-import { h } from '../dom.js';
+import { h, icon } from '../dom.js';
 import { store } from '../store.js';
 import { config } from '../config.js';
 import { loadCourse } from '../courses.js';
@@ -8,6 +8,8 @@ import { todayXp, dailyGoal, currentStreak, streakBroken, activeVacation } from 
 import { dueBreakdown } from './review.js';
 import { view, head, progress } from './common.js';
 import { plural } from '../util.js';
+import { PROVERBS } from '../../data/sr/proverbs.js';
+import { withoutScript } from '../script.js';
 
 function greeting() {
   const hr = new Date().getHours();
@@ -36,6 +38,7 @@ export async function render() {
   else if (streakBroken(state)) subParts.push(`Серия прервалась — бывает. Рекорд: ${state.stats.streak.best} ${plural(state.stats.streak.best, ['день', 'дня', 'дней'])}.`);
   subParts.push(xp >= goal ? 'Дневная цель выполнена.' : `До дневной цели — ${goal - xp} XP.`);
   meta.el.prepend(head(greeting(), subParts.join(' ')), daily(state, due, goal, xp));
+  meta.el.querySelector('.course-head')?.after(proverb(), alphabetStrip());   // под кнопкой «Начать», перед картой юнитов
   return { ...meta, back: null, tab: 'home' };
 }
 
@@ -58,4 +61,26 @@ function daily(state, due, goal, xp) {
       h('p', { class: 'daily__sub' }, streak ? `Серия: ${streak} ${plural(streak, ['день', 'дня', 'дней'])}` : 'Серия начнётся, когда вы выполните цель')),
     xp >= goal ? h('span', { class: 'badge badge--ok' }, 'Готово') : h('span'),
     progress(xp / goal, 'progress--ok progress--thin', 'Цель на день'));
+}
+
+/** «Poslovica dana»: пословица по дню года (без состояния, офлайн). */
+function proverb() {
+  const day = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86_400_000);
+  const [sr, ru] = PROVERBS[day % PROVERBS.length];
+  return h('figure', { class: 'proverb' },
+    h('figcaption', { class: 'proverb__label' }, 'Poslovica dana'),
+    h('blockquote', { class: 'proverb__text', lang: 'sr' }, sr),
+    h('p', { class: 'proverb__ru' }, ru));
+}
+
+/** Особые буквы сербской кириллицы — «герои» алфавита; ведут в справочник. */
+const HEROES = [['Ђ', 'đ'], ['Ј', 'j'], ['Љ', 'lj'], ['Њ', 'nj'], ['Ћ', 'ć'], ['Џ', 'dž']];
+function alphabetStrip() {
+  return withoutScript(() => h('a', { class: 'heroes', href: '#/ref', 'aria-label': 'Особые буквы сербского: Ђ Ј Љ Њ Ћ Џ. Открыть алфавит в справочнике' },
+    h('span', { class: 'heroes__row', 'data-keep-script': '' }, HEROES.map(([c, l], i) => {
+      const t = h('span', { class: 'heroes__tile', 'aria-hidden': 'true' }, h('b', null, c), h('i', null, l));
+      t.style.setProperty('--i', String(i));
+      return t;
+    })),
+    h('span', { class: 'heroes__cap' }, 'Шесть особых букв', icon('chevron'))));
 }

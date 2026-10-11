@@ -107,3 +107,27 @@ export function celebrate(host, letters) {
     ], { duration: 1400 + Math.random() * 600, delay: 150 + i * 22, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'both' }).onfinish = () => s.remove();
   }
 }
+
+/** Смена алфавита: экран «переворачивается» (WAAPI, ≈300 мс), позиция прокрутки сохраняется перерисовкой на месте. */
+export function flipView(reload) {
+  const old = document.getElementById('view');
+  const y = scrollY;
+  if (reducedMotion() || !old?.animate) { reload(); setTimeout(() => scrollTo(0, y), 0); return; }
+  const ease = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const tilt = 'perspective(800px) rotateX(-16deg) translateY(-6px)';
+  old.animate([{ transform: 'none', opacity: 1 }, { transform: tilt, opacity: 0 }], { duration: 110, easing: ease, fill: 'forwards' }).onfinish = () => {
+    const host = document.getElementById('app');
+    let animated = false;
+    const mo = new MutationObserver(() => {                 // экран может собираться в несколько тактов — держим позицию, пока он не устоялся
+      const v = document.getElementById('view');
+      if (!v || v === old) return;
+      setTimeout(() => scrollTo(0, y), 0);
+      if (animated) return;
+      animated = true;
+      v.animate([{ transform: 'perspective(800px) rotateX(16deg) translateY(6px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: ease });
+    });
+    if (host) mo.observe(host, { childList: true, subtree: true });
+    reload();
+    setTimeout(() => mo.disconnect(), 900);
+  };
+}
