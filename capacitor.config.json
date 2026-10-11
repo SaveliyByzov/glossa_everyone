@@ -1,0 +1,12 @@
+{
+  "appId": "app.glossa.srpski",
+  "appName": "Srpski",
+  "webDir": "www",
+  "backgroundColor": "#f4f3f1",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "never"
+  }
+}

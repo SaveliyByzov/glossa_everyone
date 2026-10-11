@@ -1,0 +1,27 @@
+// СГЕНЕРИРОВАН tools/build-sw.mjs: файлы data/ на момент сборки.
+export default [
+ "data/courses.js",
+ "data/pedagogy.js",
+ "data/sr/index.js",
+ "data/sr/reference.js",
+ "data/sr/u01.ex.js",
+ "data/sr/u01.js",
+ "data/sr/u02.ex.js",
+ "data/sr/u02.js",
+ "data/sr/u03.ex.js",
+ "data/sr/u03.js",
+ "data/sr/u04.ex.js",
+ "data/sr/u04.js",
+ "data/sr/u05.ex.js",
+ "data/sr/u05.js",
+ "data/sr/u06.ex.js",
+ "data/sr/u06.js",
+ "data/sr/u07.ex.js",
+ "data/sr/u07.js",
+ "data/sr/u08.ex.js",
+ "data/sr/u08.js",
+ "data/sr/u09.ex.js",
+ "data/sr/u09.js",
+ "data/sr/u10.ex.js",
+ "data/sr/u10.js"
+];

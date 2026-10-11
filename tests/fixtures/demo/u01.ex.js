@@ -1,0 +1,31 @@
+// Демо-упражнения: по одному на каждый из 9 типов (+ одно на урок чтения).
+export default {
+  'demo-u01-l01': [
+    { type: 'choice', skill: 'demo.noun.gender', level: 1, prompt: 'Выберите артикль', q: '___ hus', options: ['en', 'ei', 'et'], answer: 2,
+      explain: '**hus** — средний род: *et hus, huset*.' },
+    { type: 'match', level: 1, pairs: [['bil', 'машина'], ['hus', 'дом'], ['jente', 'девочка'], ['gutt', 'мальчик']],
+      explain: 'Слова урока.' },
+    { type: 'classify', skill: 'demo.noun.gender', level: 1, buckets: ['en', 'ei', 'et'],
+      items: [['bil', 0], ['gutt', 0], ['jente', 1], ['hus', 2], ['eple', 2]],
+      explain: 'en bil, en gutt; ei jente; et hus, et eple.' },
+    { type: 'cloze', skill: 'demo.noun.definite', level: 1, text: '___ er ny, og ___ er stort.', answers: ['Bilen', 'huset'], hint: 'bil, hus',
+      explain: 'Определённая форма — суффикс: bil → bil{{en}}, hus → hus{{et}}.' },
+    { type: 'paradigm', skill: 'demo.noun.definite', level: 2, lemma: 'en bil', head: ['', 'ед. ч.', 'мн. ч.'],
+      rows: [['неопр.', 'bil', 'biler'], ['опр.', 'bilen', 'bilene']], blanks: [[1, 1], [0, 2], [1, 2]],
+      explain: 'bil — bilen — biler — bilene.' },
+    { type: 'order', level: 1, q: 'Девочка читает книгу.', tokens: ['Jenta', 'leser', 'en', 'bok'], distractors: ['leste'],
+      explain: 'Подлежащее — сказуемое — дополнение: **Jenta leser en bok.**' },
+    { type: 'transform', skill: 'demo.noun.definite', level: 2, instruction: 'Поставьте существительное в определённую форму', source: 'en jente', answers: ['jenta', 'jenten'],
+      explain: 'Женский род: *jenta* (или *jenten*).' },
+    { type: 'fix', skill: 'demo.noun.definite', level: 2, tokens: ['Jeg', 'ser', 'en', 'bilen'], wrong: 3, answers: ['bil'],
+      explain: 'Не ставьте артикль дважды: *en bil* или *bilen*.' },
+    { type: 'translate', dir: 'toTarget', level: 3, q: 'Дом большой.', answers: ['Huset er stort.'],
+      explain: '**Huset er stort**: определённая форма + прилагательное ср. р. *stort*.' },
+    { type: 'translate', dir: 'toRu', level: 2, q: 'Gutten løper.', answers: ['Мальчик бежит', 'Мальчик бегает'],
+      explain: 'gutten — мальчик (опр.), løper — бежит.' },
+  ],
+  'demo-u01-l03': [
+    { type: 'choice', skill: 'demo.noun.definite', level: 1, prompt: 'По тексту', q: 'Hvor står gutten og jenta?', options: ['ved huset', 'i bilen', 'på skolen'], answer: 0,
+      explain: '*Gutten og jenta står ved huset.*' },
+  ],
+};

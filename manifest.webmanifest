@@ -1,0 +1,21 @@
+{
+  "name": "Glossa · Srpski — сербский язык",
+  "short_name": "Srpski",
+  "description": "Офлайн-приложение для изучения сербского: грамматика, лексика, кириллица и латиница.",
+  "lang": "ru",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f3f1",
+  "theme_color": "#f4f3f1",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

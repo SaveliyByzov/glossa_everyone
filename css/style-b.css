@@ -1,0 +1,399 @@
+/* ==========================================================================
+   Glossa — оформление B «Игровое». Включается: <html data-style="b">.
+   Поверх tokens.css + app.css: перенастраивает токены и отдельные компоненты,
+   разметку и логику не трогает. Акценты языков ([data-lang]) работают как раньше —
+   здесь лишь усилена насыщенность. Яркие цвета, крупные округлые формы,
+   пружинные «объёмные» кнопки, острова-юниты на карте, пламя серии.
+   Специфичность намеренно низкая (:where), чтобы состояния .is-* из app.css побеждали.
+   ========================================================================== */
+
+/* ---- Токены ---------------------------------------------------------------- */
+:root[data-style="b"] {
+  --font-ui: ui-rounded, "Arial Rounded MT Bold", "Nunito", "Segoe UI", system-ui, -apple-system, Roboto, "Noto Sans", sans-serif;
+  --r-xs: 6px; --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-sheet: 460ms;
+  --ease-drawer: cubic-bezier(0.34, 1.3, 0.5, 1);
+  --tap-lg: 56px;
+  --sun: oklch(0.80 0.17 75);
+  --sun-edge: oklch(0.62 0.15 65);
+  --sun-ink: oklch(0.27 0.06 70);
+}
+:root[data-style="b"][data-mode="light"] {
+  --n-bg: 0.972; --n-s2: 0.935; --n-s3: 0.895; --n-line: 0.88; --n-ls: 0.76;
+  --n-ink: 0.24; --n-ink2: 0.40; --n-ink3: 0.47; --n-c: 0.2;
+  --accent-l: 0.52; --accent-ink-l: 0.42; --accent-soft-l: 0.915; --accent-soft-c: 0.7;
+  --on-accent: oklch(0.995 0.004 90);
+  --surface: oklch(1 0 0);
+  --shadow-1: 0 3px 0 var(--line);
+  --shadow-2: 0 4px 0 var(--line);
+  --shadow-tile: 0 3px 0 var(--line-strong);
+  --shadow-sheet: 0 -6px 0 var(--sheet-edge, var(--line)), 0 -18px 40px -16px oklch(0.3 0.05 265 / 0.3);
+}
+:root[data-style="b"][data-mode="dark"] {
+  --n-bg: 0.21; --n-s2: 0.255; --n-s3: 0.30; --n-line: 0.34; --n-ls: 0.46;
+  --n-ink: 0.96; --n-ink2: 0.83; --n-ink3: 0.74; --n-c: 0.45;
+  --accent-l: 0.74; --accent-ink-l: 0.84; --accent-soft-l: 0.32; --accent-soft-c: 0.7;
+  --on-accent: oklch(0.17 0.03 265);
+  --surface: oklch(0.275 0.03 265);
+  --ink-inverse: oklch(0.2 0.02 265);
+  --shadow-1: 0 3px 0 oklch(0.14 0.02 265);
+  --shadow-2: 0 4px 0 oklch(0.14 0.02 265);
+  --shadow-tile: 0 3px 0 oklch(0.13 0.02 265);
+  --shadow-sheet: 0 -6px 0 var(--sheet-edge, var(--line)), 0 -18px 40px -16px #000a;
+}
+/* нейтрали и акцент пересчитываются на корне и на каждом .app[data-lang] (оттенок языка) */
+:root[data-style="b"],
+[data-style="b"] .app {
+  --bg: oklch(var(--n-bg) calc(var(--hue-c) * 0.22) var(--hue));
+  --surface-2: oklch(var(--n-s2) calc(var(--hue-c) * 0.3) var(--hue));
+  --surface-3: oklch(var(--n-s3) calc(var(--hue-c) * 0.34) var(--hue));
+  --line: oklch(var(--n-line) calc(var(--hue-c) * 0.3) var(--hue));
+  --line-strong: oklch(var(--n-ls) calc(var(--hue-c) * 0.3) var(--hue));
+  --ink: oklch(var(--n-ink) 0.06 var(--hue));
+  --ink-2: oklch(var(--n-ink2) 0.05 var(--hue));
+  --ink-3: oklch(var(--n-ink3) 0.045 var(--hue));
+}
+:root[data-style="b"],
+[data-style="b"] [data-lang] {
+  --accent: oklch(var(--accent-l) calc(var(--hue-c) * 1.5) var(--hue));
+  --accent-ink: oklch(var(--accent-ink-l) calc(var(--hue-c) * 1.3) var(--hue));
+  --accent-soft: oklch(var(--accent-soft-l) calc(var(--hue-c) * var(--accent-soft-c)) var(--hue));
+  --accent-line: color-mix(in oklch, var(--accent) 55%, var(--line));
+  --accent-edge: oklch(calc(var(--accent-l) - 0.14) calc(var(--hue-c) * 1.3) var(--hue));
+  --lang-accent: var(--accent);
+}
+:where([data-style="b"]) .app { background: var(--bg); }
+
+/* ---- Типографика ---------------------------------------------------------- */
+:where([data-style="b"]) :is(.view__title, .section__title, .card__title, .course-head__title, .lesson-head__title,
+  .result__title, .rank__title, .empty__title, .feedback__title, .daily__title, .topbar__title) {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+:where([data-style="b"]) :is(.view__title, .result__title, .lesson-head__title) { font-size: clamp(1.75rem, 1.3rem + 2.4cqi, 2.4rem); }
+:where([data-style="b"]) .course-head__title[lang] { font-family: var(--font-text); font-weight: 700; }
+:where([data-style="b"]) .label { color: var(--ink-2); }
+:where([data-style="b"]) .lesson-head__title::first-letter { color: inherit; }
+
+/* ---- Кнопки: объёмные, пружинят ------------------------------------------ */
+:where([data-style="b"]) .btn {
+  --btn-edge: var(--line-strong);
+  border-width: 2px;
+  border-radius: var(--r-md);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 0 var(--btn-edge);
+  transition:
+    transform 200ms var(--spring), box-shadow 120ms, background-color var(--dur-fast),
+    border-color var(--dur-fast), color var(--dur-fast), opacity var(--dur-fast);
+}
+:where([data-style="b"]) .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-edge); }
+:where([data-style="b"]) .btn--primary { --btn-edge: var(--accent-edge); border-color: transparent; text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--fs-base); box-shadow: 0 5px 0 var(--btn-edge); }
+:where([data-style="b"]) .btn--primary:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--btn-edge); }
+:where([data-style="b"]) .btn--primary:disabled { --btn-edge: var(--line); box-shadow: 0 4px 0 var(--btn-edge); }
+:where([data-style="b"]) .btn--ghost, :where([data-style="b"]) .btn--ghost:active { box-shadow: none; border-color: transparent; }
+:where([data-style="b"]) .btn--danger { --btn-edge: var(--bad-line); }
+:where([data-style="b"]) .btn--ok { --btn-edge: color-mix(in oklch, var(--ok) 65%, black); }
+:where([data-style="b"]) .btn--bad { --btn-edge: color-mix(in oklch, var(--bad) 65%, black); }
+:where([data-style="b"]) .btn--sm { border-radius: var(--r-sm); }
+:where([data-style="b"]) .chip { border-width: 2px; font-weight: 700; }
+:where([data-style="b"]) .chip.is-active, :where([data-style="b"]) .chip[aria-pressed="true"], :where([data-style="b"]) .chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+:where([data-style="b"]) .badge { font-weight: 800; }
+
+/* ---- Карточки -------------------------------------------------------------- */
+:where([data-style="b"]) :is(.card, .daily, .words-stat, .words-mode, .dialog) {
+  border: 2px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 4px 0 var(--line);
+}
+:where([data-style="b"]) .dialog { box-shadow: 0 6px 0 var(--line), 0 24px 60px -20px #0008; }
+:where([data-style="b"]) .daily { padding: var(--s-4) var(--s-5); }
+:where([data-style="b"]) .progress { height: 14px; background: var(--surface-3); box-shadow: inset 0 2px 0 oklch(0 0 0 / 0.06); }
+:where([data-style="b"]) .progress--thin { height: 10px; }
+:where([data-style="b"]) .progress__bar { position: relative; transition: transform 700ms var(--spring); }
+:where([data-style="b"]) .progress__bar::after { content: ""; position: absolute; left: 8px; right: 8px; top: 3px; height: 3px; border-radius: 3px; background: #fff; opacity: 0.35; }
+:where([data-style="b"]) .progress--ticks { background: var(--surface-3); }
+:where([data-style="b"]) .progress--ticks .progress__bar { mask: none; border-radius: inherit; }
+:where([data-style="b"]) .progress--ok .progress__bar { background: var(--ok); }
+:where([data-style="b"]) .mastery > i { border-radius: 3px; }
+
+/* курсы на главной: буквица-«значок» */
+:where([data-style="b"]) .course-card {
+  border: 2px solid var(--line); border-radius: var(--r-xl);
+  box-shadow: 0 5px 0 var(--line);
+  transition: transform 220ms var(--spring), box-shadow 120ms, border-color var(--dur-fast);
+}
+:where([data-style="b"]) .course-card:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--line); }
+:where([data-style="b"]) .course-card.is-new { border-color: var(--accent-line); }
+:where([data-style="b"]) .course-card__glyph {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent);
+  box-shadow: 0 4px 0 var(--accent-edge);
+  font-size: 2.4rem; font-weight: 700;
+}
+:where([data-style="b"]) .course-card__glyph::after { display: none; }
+:where([data-style="b"]) .course-card__name { font-weight: 700; }
+:where([data-style="b"]) .course-head .course-card__glyph { width: 64px; height: 64px; font-size: 2.2rem; }
+
+/* ---- Верхняя панель: пламя серии ----------------------------------------- */
+:where([data-style="b"]) .topbar { border-bottom: 2px solid var(--line); }
+:where([data-style="b"]) .stat { min-height: 36px; padding: 0 var(--s-3); background: var(--surface); box-shadow: 0 2px 0 var(--line); font-weight: 800; }
+:where([data-style="b"]) .stat--streak { background: var(--sun); color: var(--sun-ink); box-shadow: 0 2px 0 var(--sun-edge); }
+:where([data-style="b"]) .stat--streak .icon { color: oklch(0.55 0.22 38); fill: oklch(0.68 0.21 45); stroke: oklch(0.5 0.2 35); transform-origin: 50% 90%; animation: flame-flick 1.3s ease-in-out infinite; }
+:where([data-style="b"]) .stat--streak.is-inactive { background: var(--surface-2); color: var(--ink-2); box-shadow: 0 2px 0 var(--line); }
+:where([data-style="b"]) .stat--streak.is-inactive .icon { fill: none; stroke: currentColor; color: var(--ink-3); animation: none; }
+@keyframes flame-flick { 0%, 100% { transform: scale(1) rotate(-3deg); } 50% { transform: scale(1.14, 0.94) rotate(3deg); } }
+:where([data-style="b"]) .stat__meter { height: 8px; width: 32px; }
+
+/* ---- Таббар --------------------------------------------------------------- */
+:where([data-style="b"]) .tabbar { border-top: 2px solid var(--line); border-radius: 24px 24px 0 0; padding-top: 6px; gap: 2px; }
+:where([data-style="b"]) .tabbar__item { min-height: 52px; margin-bottom: 6px; border-radius: var(--r-md); font-weight: 800; color: var(--ink-2); }
+:where([data-style="b"]) .tabbar__item::before { display: none; }
+:where([data-style="b"]) :is(.tabbar__item.is-active, .tabbar__item[aria-current="page"]) { background: var(--accent-soft); color: var(--accent-ink); box-shadow: 0 0 0 2px var(--accent) inset; }
+
+/* ---- Карта курса: острова-юниты ------------------------------------------ */
+:where([data-style="b"]) .units { gap: var(--s-6); }
+:where([data-style="b"]) .unit {
+  position: relative; isolation: isolate;
+  border: 0; background: transparent; overflow: visible;
+}
+:where([data-style="b"]) .unit::before {
+  content: ""; position: absolute; z-index: -1; inset: 56px -6px 0;
+  background: var(--accent-soft);
+  border-radius: 58% 42% 52% 48% / 30% 38% 62% 70%;
+}
+:where([data-style="b"]) .unit.is-locked::before { background: var(--surface-2); }
+:where([data-style="b"]) .unit.is-current { box-shadow: none; }
+:where([data-style="b"]) .unit__head {
+  align-items: center; padding: var(--s-3) var(--s-4);
+  background: var(--accent); color: var(--on-accent);
+  border-radius: var(--r-lg);
+  box-shadow: 0 5px 0 var(--accent-edge);
+}
+:where([data-style="b"]) .unit.is-locked .unit__head { background: var(--surface-3); color: var(--ink-2); box-shadow: 0 5px 0 var(--line-strong); }
+:where([data-style="b"]) .unit__num { color: inherit; font-family: var(--font-ui); font-weight: 800; font-variant: normal; opacity: 0.85; min-width: 2.5rem; }
+:where([data-style="b"]) .unit__title { color: inherit; font-size: var(--fs-lg); font-weight: 700; }
+:where([data-style="b"]) .unit__sub { color: inherit; opacity: 0.92; }
+:where([data-style="b"]) .unit.is-locked :is(.unit__num, .unit__title) { color: var(--ink-2); }
+:where([data-style="b"]) .unit__head .badge { background: oklch(1 0 0 / 0.22); color: inherit; }
+:where([data-style="b"]) .unit__head .badge--gold { background: var(--sun); color: var(--sun-ink); }
+:where([data-style="b"]) .unit__head .icon { color: inherit !important; }
+:where([data-style="b"]) .unit__summary { padding: var(--s-3) var(--s-5) 0; color: var(--ink); font-weight: 600; }
+:where([data-style="b"]) .unit__lessons { display: grid; gap: var(--s-4); padding: var(--s-5) var(--s-4) var(--s-5); }
+:where([data-style="b"]) .unit__lessons::before { display: none; }
+:where([data-style="b"]) .unit__lessons > li:nth-child(4n + 2) .lesson-node { margin-left: 7%; }
+:where([data-style="b"]) .unit__lessons > li:nth-child(4n + 3) .lesson-node { margin-left: 13%; }
+:where([data-style="b"]) .unit__lessons > li:nth-child(4n + 4) .lesson-node { margin-left: 7%; }
+:where([data-style="b"]) .unit__skip { margin: 0 auto var(--s-4); display: flex; width: max-content; max-width: calc(100% - 2 * var(--s-4)); background: var(--surface); }
+:where([data-style="b"]) .lesson-node {
+  grid-template-columns: 68px minmax(0, 1fr) auto; gap: var(--s-3);
+  min-height: 80px; padding: var(--s-1);
+  background: transparent;
+  transition: transform 220ms var(--spring);
+}
+:where([data-style="b"]) .lesson-node:hover { background: transparent; }
+:where([data-style="b"]) .lesson-node:active { transform: scale(0.96); }
+:where([data-style="b"]) .lesson-node__mark {
+  width: 68px; height: 68px; border: 0;
+  background: var(--surface); color: var(--ink-2);
+  box-shadow: 0 5px 0 var(--line-strong);
+}
+:where([data-style="b"]) .lesson-node__mark .icon { width: 28px; height: 28px; stroke-width: 2.2; }
+:where([data-style="b"]) .lesson-node__title { font-weight: 800; font-size: var(--fs-base); }
+:where([data-style="b"]) .lesson-node__kind { color: var(--ink-2); font-weight: 600; font-size: var(--fs-xs); }
+:where([data-style="b"]) .lesson-node.is-done .lesson-node__mark { background: var(--accent); color: var(--on-accent); box-shadow: 0 5px 0 var(--accent-edge); }
+:where([data-style="b"]) .lesson-node.is-done .lesson-node__mark::after {
+  content: ""; position: absolute; right: -3px; top: -3px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--sun) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23332' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 15px no-repeat;
+  box-shadow: 0 2px 0 var(--sun-edge);
+}
+:where([data-style="b"]) .lesson-node.is-current { background: transparent; }
+:where([data-style="b"]) .lesson-node.is-current .lesson-node__mark {
+  width: 76px; height: 76px; margin: -4px;
+  border: 0; background: var(--accent); color: var(--on-accent);
+  box-shadow: 0 0 0 5px var(--sun), 0 0 0 7px var(--surface), 0 9px 0 4px var(--sun-edge);
+  animation: node-bob 1.8s var(--spring) infinite;
+}
+:where([data-style="b"]) .lesson-node.is-current .lesson-node__kind { color: var(--accent-ink); font-weight: 800; }
+:where([data-style="b"]) .lesson-node.is-locked .lesson-node__mark { background: var(--surface); border: 3px dashed var(--line-strong); box-shadow: none; color: var(--ink-3); }
+:where([data-style="b"]) .lesson-node.is-locked { color: var(--ink-3); }
+:where([data-style="b"]) .lesson-node.is-locked .lesson-node__kind { color: var(--ink-3); }
+@keyframes node-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+/* ---- Теория / урок --------------------------------------------------------- */
+:where([data-style="b"]) .theory__rule { border-radius: var(--r-lg); border: 2px solid var(--accent-line); }
+:where([data-style="b"]) .theory__tip, :where([data-style="b"]) .theory__pitfall, :where([data-style="b"]) .theory__contrast { border-radius: var(--r-lg); }
+:where([data-style="b"]) .morph { background: linear-gradient(transparent 55%, color-mix(in oklch, var(--accent) 24%, transparent) 55%); border-radius: 3px; }
+:where([data-style="b"]) .theory__table thead th { border-bottom-width: 3px; border-bottom-color: var(--accent); }
+:where([data-style="b"]) .goals .icon { color: var(--on-accent); background: var(--accent); border-radius: 50%; padding: 3px; width: 20px; height: 20px; margin-top: 1px; }
+:where([data-style="b"]) .view__actions { background: linear-gradient(to bottom, transparent, var(--bg) 35%); }
+
+/* ---- Упражнения ------------------------------------------------------------ */
+:where([data-style="b"]) .session__bar { padding-top: calc(var(--safe-top) + var(--s-3)); }
+:where([data-style="b"]) .session__footer { border-top: 2px solid var(--line); }
+:where([data-style="b"]) .ex__prompt { font-weight: 800; color: var(--ink); font-size: var(--fs-md); }
+:where([data-style="b"]) .ex__q { font-weight: 500; }
+:where([data-style="b"]) .option {
+  border-width: 2px; border-color: var(--line); border-radius: var(--r-md);
+  box-shadow: 0 4px 0 var(--line);
+  transition: transform 200ms var(--spring), background-color var(--dur-fast), border-color var(--dur-fast), box-shadow 120ms;
+}
+:where([data-style="b"]) .option:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+:where([data-style="b"]) .option__key { border-width: 2px; border-radius: 8px; font-weight: 800; }
+:where([data-style="b"]) .option.is-selected { box-shadow: 0 4px 0 var(--accent); }
+:where([data-style="b"]) .option.is-correct { box-shadow: 0 4px 0 var(--ok); }
+:where([data-style="b"]) .option.is-wrong { box-shadow: 0 4px 0 var(--bad); }
+:where([data-style="b"]) .pair { border-width: 2px; border-color: var(--line); border-radius: var(--r-md); box-shadow: 0 4px 0 var(--line); transition: transform 200ms var(--spring), background-color var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-base); }
+:where([data-style="b"]) .pair:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+:where([data-style="b"]) .pair.is-selected { box-shadow: 0 4px 0 var(--accent); }
+:where([data-style="b"]) .pair.is-matched { box-shadow: none; }
+:where([data-style="b"]) .tile { border-width: 2px; border-radius: var(--r-md); box-shadow: 0 3px 0 var(--line-strong); transition: transform 200ms var(--spring), background-color var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-fast), color var(--dur-fast); }
+:where([data-style="b"]) .tile:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 var(--line-strong); }
+:where([data-style="b"]) .tile.is-selected { box-shadow: 0 4px 0 var(--accent); }
+:where([data-style="b"]) .tile.is-used { box-shadow: none; }
+:where([data-style="b"]) .bucket { border-width: 3px; border-radius: var(--r-lg); }
+:where([data-style="b"]) .ex__source { border-radius: var(--r-lg); border: 2px solid var(--line); background: var(--surface); box-shadow: 0 4px 0 var(--line); }
+:where([data-style="b"]) .input { border-width: 2px; border-color: var(--line); border-radius: var(--r-md); box-shadow: 0 3px 0 var(--line); }
+:where([data-style="b"]) .input:focus { box-shadow: 0 3px 0 var(--accent); }
+:where([data-style="b"]) .input.is-correct, :where([data-style="b"]) .input.is-wrong, :where([data-style="b"]) .input.is-almost { box-shadow: none; }
+:where([data-style="b"]) .input--inline {
+  border: 3px dashed var(--accent); border-radius: 12px;
+  background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; box-shadow: none;
+  height: 1.45em; margin-inline: 0.12em;
+}
+:where([data-style="b"]) .input--inline:focus { border-style: solid; background: var(--accent-soft); box-shadow: none; }
+:where([data-style="b"]) .input--inline.is-correct { background: var(--ok); border: 3px solid var(--ok); color: var(--on-accent); }
+:where([data-style="b"]) .input--inline.is-wrong { background: var(--bad); border: 3px solid var(--bad); color: var(--on-accent); }
+:where([data-style="b"]) .input--inline.is-almost { background: var(--almost-soft); border: 3px solid var(--almost); }
+:where([data-style="b"]) .input--cell { border-radius: 12px; box-shadow: none; }
+:where([data-style="b"]) .input--search { border-radius: var(--r-xl); }
+:where([data-style="b"]) .keyboard { gap: 8px; }
+:where([data-style="b"]) .keyboard__key {
+  height: 52px; border: 2px solid var(--line); border-radius: var(--r-md);
+  box-shadow: 0 4px 0 var(--line-strong);
+  font-weight: 700; font-size: var(--fs-xl);
+  transition: transform 200ms var(--spring), box-shadow 120ms, background-color var(--dur-instant);
+}
+:where([data-style="b"]) .keyboard__key:active { transform: translateY(4px); box-shadow: 0 0 0 var(--line-strong); background: var(--accent-soft); }
+:where([data-style="b"]) .keyboard__key--wide { font-size: var(--fs-sm); }
+:where([data-style="b"]) .token { border-radius: 8px; }
+
+/* ---- Feedback-панель ------------------------------------------------------- */
+:where([data-style="b"]) .sheet { border-radius: 32px 32px 0 0; }
+:where([data-style="b"]) .feedback--correct { --sheet-edge: var(--ok-line); }
+:where([data-style="b"]) .feedback--wrong { --sheet-edge: var(--bad-line); }
+:where([data-style="b"]) .feedback--almost { --sheet-edge: var(--almost-line); }
+:where([data-style="b"]) .feedback { box-shadow: var(--shadow-sheet); }
+:where([data-style="b"]) .feedback__icon { width: 52px; height: 52px; box-shadow: 0 4px 0 color-mix(in oklch, var(--fb) 60%, black); transition: transform 560ms var(--spring) 120ms, opacity 160ms ease 120ms; transform: scale(0.3) rotate(-25deg); }
+:where([data-style="b"]) .feedback__icon .icon { width: 28px; height: 28px; stroke-width: 3; }
+:where([data-style="b"]) .sheet.is-open .feedback__icon { transform: scale(1) rotate(0); }
+:where([data-style="b"]) .feedback__title { font-size: var(--fs-xl); font-weight: 800; }
+:where([data-style="b"]) .feedback__xp { background: var(--sun); color: var(--sun-ink); padding: 3px 10px; border-radius: var(--r-pill); }
+:where([data-style="b"]) .feedback .btn--primary { --btn-edge: color-mix(in oklch, var(--fb) 62%, black); }
+:where([data-style="b"]) .feedback__explain { border-top-width: 2px; border-top-style: dashed; }
+
+/* ---- Итог ------------------------------------------------------------------- */
+:where([data-style="b"]) .result { position: relative; }
+:where([data-style="b"]) .result__seal {
+  width: 116px; height: 116px; margin-bottom: var(--s-4);
+  background: var(--accent); color: var(--on-accent);
+  box-shadow: 0 7px 0 var(--accent-edge), 0 0 0 8px var(--accent-soft);
+  animation: seal-spring 760ms var(--spring) both;
+}
+:where([data-style="b"]) .result__seal .icon { width: 56px !important; height: 56px !important; stroke-width: 2.8 !important; }
+:where([data-style="b"]) .result__seal--perfect { background: var(--sun); color: var(--sun-ink); box-shadow: 0 7px 0 var(--sun-edge), 0 0 0 8px var(--gold-soft); }
+:where([data-style="b"]) .result__seal--retry { background: var(--surface-3); color: var(--ink-2); box-shadow: 0 7px 0 var(--line-strong), 0 0 0 8px var(--surface-2); }
+@keyframes seal-spring { 0% { opacity: 0; transform: scale(0.2) translateY(30px); } 60% { opacity: 1; } 100% { transform: none; } }
+:where([data-style="b"]) .result .mastery > i { width: 14px; height: 14px; }
+:where([data-style="b"]) .ledger { gap: var(--s-2); }
+:where([data-style="b"]) .ledger__row {
+  padding: var(--s-3) var(--s-4); gap: var(--s-3);
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-md);
+  box-shadow: 0 3px 0 var(--line); align-items: center;
+  animation: ledger-pop 520ms var(--spring) both; animation-delay: calc(var(--i, 0) * 70ms + 200ms);
+}
+:where([data-style="b"]) .ledger__dots { display: none; }
+:where([data-style="b"]) .ledger__label { flex: 1; font-weight: 700; }
+:where([data-style="b"]) .ledger__value { font-weight: 800; font-size: var(--fs-md); }
+:where([data-style="b"]) .ledger__row:first-child { background: var(--sun); border-color: var(--sun-edge); box-shadow: 0 4px 0 var(--sun-edge); color: var(--sun-ink); }
+:where([data-style="b"]) .ledger__row:first-child .ledger__label,
+:where([data-style="b"]) .ledger__row:first-child .ledger__value { color: var(--sun-ink); font-size: var(--fs-lg); }
+@keyframes ledger-pop { from { opacity: 0; transform: translateY(24px) scale(0.92); } }
+.confetti-letter { position: absolute; left: 50%; top: 96px; z-index: 3; pointer-events: none; font-weight: 700; line-height: 1; will-change: transform, opacity; }
+:where([data-style="b"]) .mistakes li { border-bottom-width: 2px; }
+
+/* ---- Повторение / лексика --------------------------------------------------- */
+:where([data-style="b"]) .review-hero__count { font-family: var(--font-ui); font-weight: 800; }
+:where([data-style="b"]) .forecast__bar { border-radius: 8px 8px 0 0; }
+:where([data-style="b"]) .list__item { border-bottom-width: 2px; }
+:where([data-style="b"]) .words-stat { box-shadow: 0 3px 0 var(--line); }
+:where([data-style="b"]) .words-stat__n { font-family: var(--font-ui); font-weight: 800; }
+:where([data-style="b"]) .words-stat--due { background: var(--accent-soft); border-color: var(--accent-line); box-shadow: 0 3px 0 var(--accent-line); }
+:where([data-style="b"]) .words-mode { transition: transform 200ms var(--spring), border-color var(--dur-fast), background-color var(--dur-fast); }
+:where([data-style="b"]) .words-mode:active { transform: translateY(3px); }
+:where([data-style="b"]) .words-mode[aria-checked="true"] { box-shadow: 0 3px 0 var(--accent); }
+:where([data-style="b"]) .select { border-width: 2px; border-radius: var(--r-md); }
+:where([data-style="b"]) .entry__word { font-weight: 700; }
+:where([data-style="b"]) .dict__letter { font-family: var(--font-ui); font-weight: 800; border-bottom: 3px solid var(--accent); }
+
+/* флэшкарта */
+:where([data-style="b"]) .flashcard__face { border: 0; border-radius: 32px; box-shadow: 0 8px 0 var(--line-strong); min-height: 320px; transition: border-color var(--dur-fast), background-color var(--dur-fast); }
+:where([data-style="b"]) .flashcard__inner { transition: transform 640ms var(--spring); }
+:where([data-style="b"]) .flashcard__face--front { background: var(--accent); color: var(--on-accent); box-shadow: 0 8px 0 var(--accent-edge); --ink: var(--on-accent); --ink-2: var(--on-accent); --ink-3: var(--on-accent); }
+:where([data-style="b"]) .flashcard__face--front .flashcard__tags { color: var(--on-accent); opacity: 0.9; font-weight: 800; }
+:where([data-style="b"]) .flashcard__face--front .flashcard__word { font-size: clamp(2.5rem, 2rem + 3vw, 3.4rem); font-weight: 700; }
+:where([data-style="b"]) .flashcard__face--back { border: 3px solid var(--accent); box-shadow: 0 8px 0 var(--line-strong); }
+:where([data-style="b"]) .flashcard__ru { font-family: var(--font-ui); font-weight: 800; color: var(--accent-ink); }
+:where([data-style="b"]) .flashcard__ex { border-top-style: dashed; border-top-width: 2px; }
+:where([data-style="b"]) .flashcard__grades .btn { border-radius: var(--r-md); }
+:where([data-style="b"]) .flashcard__grades .btn:nth-child(1) { --btn-edge: var(--bad-line); }
+:where([data-style="b"]) .flashcard__grades .btn:nth-child(3), :where([data-style="b"]) .flashcard__grades .btn:nth-child(4) { --btn-edge: var(--ok-line); }
+
+/* ---- Профиль ---------------------------------------------------------------- */
+:where([data-style="b"]) .rank { padding: var(--s-4); border: 2px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: 0 5px 0 var(--line); }
+:where([data-style="b"]) .rank__seal { width: 68px; height: 68px; background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 0 var(--accent-edge); font-weight: 700; }
+:where([data-style="b"]) .rank__title { font-weight: 800; }
+:where([data-style="b"]) .stats-grid { gap: var(--s-2); background: transparent; border: 0; border-radius: 0; overflow: visible; }
+:where([data-style="b"]) .stats-grid > div { border: 2px solid var(--line); border-radius: var(--r-md); box-shadow: 0 3px 0 var(--line); padding: var(--s-3) var(--s-4); }
+:where([data-style="b"]) .stats-grid dd { font-family: var(--font-ui); font-weight: 800; font-size: var(--fs-xl); color: var(--accent-ink); }
+:where([data-style="b"]) .stats-grid dt { color: var(--ink-2); font-weight: 600; }
+:where([data-style="b"]) .streak-cal { gap: 5px; }
+:where([data-style="b"]) .streak-cal i { border-radius: 50%; }
+:where([data-style="b"]) .streak-cal i.is-on { background: var(--sun); box-shadow: 0 2px 0 var(--sun-edge); }
+:where([data-style="b"]) .streak-cal i.is-today { box-shadow: 0 0 0 2.5px var(--ink) inset; }
+:where([data-style="b"]) .achievement { border-width: 2px; border-radius: var(--r-lg); }
+:where([data-style="b"]) .achievement.is-earned { border-color: var(--line); box-shadow: 0 3px 0 var(--line); }
+:where([data-style="b"]) .achievement.is-earned .achievement__icon { background: var(--sun); color: var(--sun-ink); box-shadow: 0 3px 0 var(--sun-edge); }
+:where([data-style="b"]) .settings { border-top-width: 2px; }
+:where([data-style="b"]) .setting { border-bottom-width: 2px; }
+:where([data-style="b"]) .setting__label { font-weight: 800; }
+:where([data-style="b"]) .segmented { padding: 4px; border-radius: var(--r-lg); background: var(--surface-3); }
+:where([data-style="b"]) .setting--stack > .segmented { display: grid; width: 100%; }
+:where([data-style="b"]) .segmented > button { min-height: 44px; border-radius: var(--r-md); font-weight: 700; transition: background-color var(--dur-fast), color var(--dur-fast), transform 200ms var(--spring); }
+:where([data-style="b"]) .segmented > button:active { transform: scale(0.96); }
+:where([data-style="b"]) .segmented > button[aria-pressed="true"], :where([data-style="b"]) .segmented > button[aria-checked="true"], :where([data-style="b"]) .segmented > button.is-active { background: var(--accent); color: var(--on-accent); box-shadow: 0 3px 0 var(--accent-edge); font-weight: 800; }
+:where([data-style="b"]) .switch { width: 56px; height: 34px; background: var(--surface-3); box-shadow: inset 0 2px 0 oklch(0 0 0 / 0.08); }
+:where([data-style="b"]) .switch::after { width: 26px; height: 26px; top: 4px; left: 4px; transition: transform 300ms var(--spring); }
+:where([data-style="b"]) .switch[aria-checked="true"]::after { transform: translateX(22px); }
+
+/* ---- Прочее ------------------------------------------------------------------ */
+:where([data-style="b"]) .toast { border-radius: var(--r-lg); font-weight: 700; box-shadow: 0 4px 0 oklch(0 0 0 / 0.3), var(--shadow-2); }
+:where([data-style="b"]) .empty__orn > i { border-radius: 50%; transform: none; width: 12px; height: 12px; background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-style="b"]) .stat--streak .icon,
+  :where([data-style="b"]) .lesson-node.is-current .lesson-node__mark { animation: none; }
+  :where([data-style="b"]) .result__seal { animation: fade-only var(--dur-base) both; }
+  :where([data-style="b"]) .ledger__row { animation-name: fade-only; }
+  :where([data-style="b"]) .feedback__icon, :where([data-style="b"]) .sheet.is-open .feedback__icon { transform: none; }
+  :where([data-style="b"]) .progress__bar { transition: none; }
+  .confetti-letter { display: none; }
+}
+
+/* тап-цели ≥44px и в мелких вариантах */
+:where([data-style="b"]) .btn--sm { min-height: var(--tap); }
+:where([data-style="b"]) button.chip { min-height: var(--tap); }
+:where([data-style="b"]) .bucket__items .tile { min-height: var(--tap); }
+:where([data-style="b"]) .switch::before { content: ""; position: absolute; inset: -6px -4px; }

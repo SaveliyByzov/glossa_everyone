@@ -1,0 +1,67 @@
+// Демо-курс для отладки движка (виден только с ?demo=1). Все типы блоков теории.
+export default {
+  id: 'demo-u01',
+  title: 'Substantiv og verb',
+  titleRu: 'Существительное и глагол (демо)',
+  summary: 'Маленький юнит со всеми блоками теории и всеми девятью типами упражнений.',
+  lessons: [
+    {
+      id: 'demo-u01-l01',
+      kind: 'grammar',
+      title: 'Род и определённая форма',
+      goals: ['Различать en / ei / et', 'Образовывать определённую форму: bil → bil**en**'],
+      skills: ['demo.noun.gender', 'demo.noun.definite'],
+      theory: [
+        { type: 'h', text: 'Три рода' },
+        { type: 'p', text: 'В букмоле три рода: мужской (*en*), женский (*ei*) и средний (*et*). Женский род часто заменяется мужским.' },
+        { type: 'rule', text: 'Определённый артикль — **суффикс**: en bil → bil{{en}}, ei jente → jent{{a}}, et hus → hus{{et}}.' },
+        { type: 'table', caption: 'Определённая форма ед. ч.', head: ['', 'неопр.', 'опр.'],
+          rows: [['м. р.', 'en bil', 'bil{{en}}'], ['ж. р.', 'ei jente', 'jent{{a}}'], ['ср. р.', 'et hus', 'hus{{et}}']],
+          note: 'Женские слова допускают и форму на -en: jenten.' },
+        { type: 'examples', items: [
+          { t: 'Bil{{en}} er ny.', ru: 'Машина новая.' },
+          { t: 'Hus{{et}} er stort.', ru: 'Дом большой.', note: 'stort — форма ср. р. от stor' },
+        ] },
+        { type: 'contrast', text: 'В русском артиклей нет; определённость передаётся порядком слов и контекстом: «*Машина* стоит у дома» = **Bilen** står ved huset.' },
+        { type: 'tip', text: 'Учите существительное сразу с артиклем: *en bil*, *et hus*.' },
+        { type: 'pitfall', text: 'Не ставьте артикль дважды: не *\\*en bilen*, а **bilen**.' },
+      ],
+      vocab: [
+        { id: 'demo-bil', w: 'bil', ru: 'машина, автомобиль', pos: 'n', g: 'm', forms: 'bilen, biler, bilene', ex: 'Bilen er ny.', exRu: 'Машина новая.', note: null },
+        { id: 'demo-hus', w: 'hus', ru: 'дом', pos: 'n', g: 'n', forms: 'huset, hus, husene', ex: 'Huset er stort.', exRu: 'Дом большой.', note: null },
+        { id: 'demo-jente', w: 'jente', ru: 'девочка, девушка', pos: 'n', g: 'f', forms: 'jenta/jenten, jenter, jentene', ex: 'Jenta leser.', exRu: 'Девочка читает.', note: null },
+        { id: 'demo-gutt', w: 'gutt', ru: 'мальчик', pos: 'n', g: 'm', forms: 'gutten, gutter, guttene', ex: 'Gutten løper.', exRu: 'Мальчик бежит.', note: null },
+      ],
+      text: null,
+    },
+    {
+      id: 'demo-u01-l02',
+      kind: 'vocab',
+      title: 'Слова: еда (автогенерация)',
+      goals: ['Упражнения этого урока генерируются из лексики'],
+      skills: [],
+      theory: [],
+      vocab: [
+        { id: 'demo-eple', w: 'eple', ru: 'яблоко', pos: 'n', g: 'n', forms: 'eplet, epler, eplene', ex: 'Eplet er rødt.', exRu: 'Яблоко красное.', note: null },
+        { id: 'demo-brod', w: 'brød', ru: 'хлеб', pos: 'n', g: 'n', forms: 'brødet, brød, brødene', ex: null, exRu: null, note: null },
+        { id: 'demo-melk', w: 'melk', ru: 'молоко', pos: 'n', g: 'm', forms: 'melken', ex: null, exRu: null, note: null },
+        { id: 'demo-ost', w: 'ost', ru: 'сыр', pos: 'n', g: 'm', forms: 'osten, oster, ostene', ex: null, exRu: null, note: null },
+        { id: 'demo-spise', w: 'spise', ru: 'есть, кушать', pos: 'v', g: null, forms: 'spiser, spiste, har spist', ex: 'Vi spiser brød.', exRu: 'Мы едим хлеб.', note: null },
+      ],
+      text: null,
+    },
+    {
+      id: 'demo-u01-l03',
+      kind: 'reading',
+      title: 'Текст: Ved huset',
+      goals: ['Прочитать короткий текст'],
+      skills: ['demo.noun.definite'],
+      theory: [],
+      vocab: [],
+      text: { title: 'Ved huset', lines: [
+        { t: 'Gutten og jenta står ved huset.', ru: 'Мальчик и девочка стоят у дома.' },
+        { t: 'Bilen er ny, og huset er stort.', ru: 'Машина новая, а дом большой.' },
+      ] },
+    },
+  ],
+};

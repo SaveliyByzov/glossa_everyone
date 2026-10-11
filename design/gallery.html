@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Glossa — галерея</title>
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  /* gallery-only helpers (.gx-*) — NOT part of the app */
+  body { background: var(--surface-2); }
+  .gx-head {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+    padding: 12px 24px; background: var(--bg); border-bottom: 1px solid var(--line);
+  }
+  .gx-head h1 { font-family: var(--font-text); font-size: 1.375rem; font-weight: 600; }
+  .gx-head nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: .875rem; margin-right: auto; }
+  .gx-head nav a { color: var(--ink-2); text-decoration: none; }
+  .gx-main { padding: 24px; max-width: 1640px; margin: 0 auto; }
+  .gx-sec { margin: 24px 0 56px; }
+  .gx-sec > h2 { font-family: var(--font-text); font-size: 1.75rem; font-weight: 600; margin-bottom: 4px; }
+  .gx-sec > p { color: var(--ink-2); margin-bottom: 20px; max-width: 72ch; }
+  .gx-board { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: grid; gap: 28px; }
+  .gx-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .gx-col { display: grid; gap: 12px; max-width: 420px; }
+  .gx-k { font-size: .75rem; color: var(--ink-3); font-family: var(--font-mono); }
+  .gx-shots { display: flex; flex-wrap: wrap; gap: 32px 28px; align-items: flex-start; }
+  .gx-shot { margin: 0; display: grid; gap: 10px; }
+  .gx-shot figcaption { font-size: .8125rem; color: var(--ink-2); max-width: 375px; }
+  .gx-shot figcaption b { color: var(--ink); }
+  .gx-frame {
+    width: 375px; height: 780px; overflow: auto;
+    border-radius: 28px; border: 1px solid var(--line-strong);
+    background: var(--bg); box-shadow: var(--shadow-2);
+    transform: translateZ(0); /* contains position:fixed (sheet, toast) */
+    position: relative;
+  }
+  .gx-frame--wide { width: min(1100px, 100%); height: 720px; border-radius: 16px; }
+  .gx-frame .app { height: auto; min-height: 780px; }
+  .gx-frame--wide .app { min-height: 720px; }
+  .gx-frame .view--session { height: 780px; }
+  .gx-frame--wide .view--session { height: 720px; }
+  .gx-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .gx-sw { display: grid; gap: 8px; justify-items: start; font-size: .8125rem; color: var(--ink-2); }
+  .gx-sw b { color: var(--ink); font-size: .9375rem; }
+  .gx-chip-sw { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--line); }
+  .gx-spec { display: grid; gap: 10px; }
+  .gx-spec p { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: baseline; }
+  @media (max-width: 600px) {
+    .gx-head { position: static; padding: 12px; }
+    .gx-head nav { display: none; }
+    .gx-main { padding: 12px; }
+    .gx-board { padding: 16px; }
+    .gx-frame { width: 100%; max-width: 375px; }
+    .gx-spec p { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================================================================
+     ICON SPRITE — copy into index.html once (hidden), use as
+     <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>
+     24×24 grid, stroke 1.75, round caps/joins.
+     =================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-almost" viewBox="0 0 24 24"><path d="M4.5 9.5c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0M4.5 15c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c.8 3.4 5 5.3 5 10.2a5 5 0 0 1-10 0c0-2.1 1-3.7 2.1-4.7.2 1.6 1.1 2.6 2.1 2.9C10.6 9 10.9 6 12 3z"/></symbol>
+    <symbol id="i-xp" viewBox="0 0 24 24"><path d="M12 3.5l2 6.5 6.5 2-6.5 2-2 6.5-2-6.5-6.5-2 6.5-2z"/></symbol>
+    <symbol id="i-goal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5.5L8.5 12l6.5 6.5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10.2 5 7.6 4.5 4 4.8v13.5c3.6-.3 6.2.2 8 1.7 1.8-1.5 4.4-2 8-1.7V4.8c-3.6-.3-6.2.2-8 1.7zM12 6.5V20"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5M19.5 4v4.5H15M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5M4.5 20v-4.5H9"/></symbol>
+    <symbol id="i-dict" viewBox="0 0 24 24"><path d="M6 3.5h11.5a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1.5 1.5 0 0 1-1.5-1.5v-14A1.5 1.5 0 0 1 6 3.5zM4.5 17.5A1.5 1.5 0 0 1 6 16h12.5M9 8h6M9 11.5h4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20c1.4-3.8 4.2-5.8 7.5-5.8s6.1 2 7.5 5.8"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4zM15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.5 7.5 0 0 1 0 10.4"/></symbol>
+    <symbol id="i-backspace" viewBox="0 0 24 24"><path d="M9 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5.5-6zM12 9.5l5 5M17 9.5l-5 5"/></symbol>
+    <symbol id="i-pilcrow" viewBox="0 0 24 24"><path d="M13 4.5V20M17 4.5V20M18.5 4.5h-8a4.3 4.3 0 0 0 0 8.6H13"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.5 17.5h5M10.5 20.5h3M12 3.5a5.8 5.8 0 0 0-3.4 10.5c.6.5.9 1.1.9 1.9v.1h5V16c0-.8.3-1.4.9-1.9A5.8 5.8 0 0 0 12 3.5z"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.5l8.5 15h-17zM12 10.5v4M12 17.2v.1"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M5 8.5h13.5M15 5l3.5 3.5L15 12M19 15.5H5.5M9 12l-3.5 3.5L9 19"/></symbol>
+    <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="14.5" r="5"/><path d="M8.6 10.8L6 3.5h3.5L12 8.5l2.5-5H18l-2.6 7.3M12 12.5l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M19.5 19.5l-4.6-4.6"/></symbol>
+    <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 6.5l2.5-2M9.5 19.5l2.5-2 2.5 2"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M12.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-read" viewBox="0 0 24 24"><path d="M5 5.5h14M5 9.5h14M5 13.5h14M5 17.5h8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z"/></symbol>
+  </defs>
+</svg>
+
+<header class="gx-head">
+  <h1>Glossa · галерея</h1>
+  <nav>
+    <a href="#found">Основы</a>
+    <a href="#screens">Экраны</a>
+    <a href="#ex">Упражнения</a>
+    <a href="#more">Результат, повтор, словарь, профиль</a>
+    <a href="#desk">Десктоп</a>
+  </nav>
+  <div class="segmented" role="group" aria-label="Тема">
+    <button type="button" data-set-theme="auto" aria-pressed="true">Авто</button>
+    <button type="button" data-set-theme="light" aria-pressed="false">Светлая</button>
+    <button type="button" data-set-theme="dark" aria-pressed="false">Тёмная</button>
+  </div>
+</header>
+
+<main class="gx-main">
+
+<!-- =========================== FOUNDATIONS =========================== -->
+<section class="gx-sec" id="found">
+  <h2>Основы</h2>
+  <p>Бумага и железо-галловые чернила; у каждого языка свой пигмент (<code>[data-lang]</code>), как рубрикация в рукописи. Изучаемый язык набирается антиквой, интерфейс — системным гротеском.</p>
+
+  <div class="gx-board">
+    <div>
+      <p class="label" style="margin-bottom:12px">Пигменты языков · --accent / --accent-soft</p>
+      <div class="gx-swatches">
+        <div class="gx-sw" data-lang="nb"><span class="course-card__glyph" aria-hidden="true">Ø</span><b>nb · фьорд</b>hue 242</div>
+        <div class="gx-sw" data-lang="la"><span class="course-card__glyph" aria-hidden="true">Ā</span><b>la · тирийский пурпур</b>hue 352</div>
+        <div class="gx-sw" data-lang="ang"><span class="course-card__glyph" aria-hidden="true">Þ</span><b>ang · ярь-медянка</b>hue 192</div>
+        <div class="gx-sw" data-lang="it"><span class="course-card__glyph" aria-hidden="true">È</span><b>it · сиена</b>hue 45</div>
+        <div class="gx-sw" data-lang="sr"><span class="course-card__glyph" aria-hidden="true">Ђ</span><b>sr · иконная охра</b>hue 75</div>
+        <div class="gx-sw"><span class="course-card__glyph" aria-hidden="true">G</span><b>бренд · лазурит</b>hue 272, вне курса</div>
+      </div>
+    </div>
+
+    <div>
+      <p class="label" style="margin-bottom:12px">Обратная связь · всегда цвет + иконка + текст</p>
+      <div class="gx-swatches">
+        <div class="gx-sw"><span class="gx-chip-sw" style="background:var(--ok-soft);border-color:var(--ok-line)"></span><b>--ok</b>Верно</div>
+        <div class="gx-sw"><span class="gx-chip-sw" style="background:var(--almost-soft);border-color:var(--almost-line)"></span><b>--almost</b>Почти (опечатка)</div>
+        <div class="gx-sw"><span class="gx-chip-sw" style="background:var(--bad-soft);border-color:var(--bad-line)"></span><b>--bad</b>Неверно</div>
+        <div class="gx-sw"><span class="gx-chip-sw" style="background:var(--gold)"></span><b>--gold</b>Мастерство 5, медали</div>
+        <div class="gx-sw"><span class="gx-chip-sw" style="background:var(--streak)"></span><b>--streak</b>Серия</div>
+      </div>
+    </div>
+
+    <div class="gx-spec">
+      <p class="label">Типографика</p>
+      <p><span class="gx-k">--font-text</span><span class="tl" style="font-size:1.75rem;line-height:1.2" lang="ang">Hwæt! Wē Gār-Dena in ġēardagum þēodcyninga þrym gefrūnon. ƿ ȝ ȳ</span></p>
+      <p><span class="gx-k">la</span><span class="tl" style="font-size:1.375rem" lang="la">Gallia est omnis dīvīsa in partēs trēs; rēx, rēgis m.; corpus, corporis n.</span></p>
+      <p><span class="gx-k">nb</span><span class="tl" style="font-size:1.375rem" lang="nb">Jeg har kjøpt en blå bil. Æ ø å — Æble? Nei: eple.</span></p>
+      <p><span class="gx-k">it</span><span class="tl" style="font-size:1.375rem" lang="it">Perché è già andata là? Così, più tardi.</span></p>
+      <p><span class="gx-k">sr</span><span class="tl" style="font-size:1.375rem" lang="sr">Ђак чита књигу. Đak čita knjigu. Ћ ћ Џ џ Љ љ Њ њ</span></p>
+      <p><span class="gx-k">--font-ui</span><span>Интерфейс: Проверить · Дальше · 1 245 XP · č ć š ž đ ā ē ī ō ū þ ð</span></p>
+    </div>
+
+    <div class="gx-row">
+      <button class="btn btn--primary">Проверить</button>
+      <button class="btn">Обычная</button>
+      <button class="btn btn--outline">Контурная</button>
+      <button class="btn btn--ghost">Пропустить</button>
+      <button class="btn btn--danger">Сбросить прогресс</button>
+      <button class="btn btn--primary" disabled>Проверить</button>
+      <button class="btn btn--sm btn--outline"><svg class="icon"><use href="#i-skip"/></svg>Тест-переход</button>
+      <button class="btn btn--icon btn--ghost" aria-label="Озвучить"><svg class="icon"><use href="#i-speaker"/></svg></button>
+    </div>
+
+    <div class="gx-row">
+      <span class="chip">Существительное</span>
+      <button class="chip" aria-pressed="true">Все</button>
+      <button class="chip" aria-pressed="false">К повтору</button>
+      <span class="chip chip--accent" data-lang="la">3-е склонение</span>
+      <span class="chip chip--quiet">повтор</span>
+      <span class="badge">3/5</span>
+      <span class="badge badge--accent">12</span>
+      <span class="badge badge--ok">+10 XP</span>
+      <span class="badge badge--bad">4 ошибки</span>
+      <span class="badge badge--gold">Новое</span>
+    </div>
+
+    <div class="gx-row" style="align-items:flex-start">
+      <div class="gx-col" style="flex:1;min-width:260px" data-lang="la">
+        <input class="input" placeholder="Введите ответ" lang="la">
+        <input class="input is-correct" value="rēgibus" lang="la" aria-invalid="false">
+        <input class="input is-almost" value="regibs" lang="la">
+        <input class="input is-wrong" value="rēgis" lang="la" aria-invalid="true">
+      </div>
+      <div class="gx-col" style="flex:1;min-width:260px" data-lang="la">
+        <p class="ex__q tl" lang="la">Puer librum <input class="input input--inline" style="--chars:5" aria-label="Пропуск 1" value="rēg"> dat.</p>
+        <div class="keyboard" role="group" aria-label="Особые символы">
+          <button class="keyboard__key" type="button">ā</button><button class="keyboard__key" type="button">ē</button><button class="keyboard__key" type="button">ī</button><button class="keyboard__key" type="button">ō</button><button class="keyboard__key" type="button">ū</button><button class="keyboard__key" type="button">ȳ</button>
+        </div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62"><div class="progress__bar" style="--value:.62"></div></div>
+        <div class="progress progress--ticks" style="--steps:12" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="5"><div class="progress__bar" style="--value:calc(5/12)"></div></div>
+      </div>
+    </div>
+
+    <div class="gx-row" data-lang="nb">
+      <span class="gx-k">.mastery 0–5</span>
+      <span class="mastery" data-level="0" role="img" aria-label="Мастерство 0 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery" data-level="1" role="img" aria-label="Мастерство 1 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery" data-level="2" role="img" aria-label="Мастерство 2 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery" data-level="3" role="img" aria-label="Мастерство 3 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery" data-level="4" role="img" aria-label="Мастерство 4 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery" data-level="5" role="img" aria-label="Мастерство 5 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mastery mastery--lg" data-level="3" role="img" aria-label="Мастерство 3 из 5"><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+
+    <div class="gx-row">
+      <span class="stat stat--streak" title="Серия"><svg class="icon"><use href="#i-flame"/></svg>15</span>
+      <span class="stat stat--streak is-inactive" title="Серия: сегодня ещё не продлена"><svg class="icon"><use href="#i-flame"/></svg>15</span>
+      <span class="stat stat--xp"><svg class="icon"><use href="#i-xp"/></svg>4 820</span>
+      <span class="stat stat--goal"><svg class="icon"><use href="#i-goal"/></svg><span class="stat__meter"><i style="--value:.7"></i></span>35/50</span>
+      <span class="stat stat--goal is-done"><svg class="icon"><use href="#i-goal"/></svg><span class="stat__meter"><i style="--value:1"></i></span>50/50</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SCREENS ============================= -->
+<section class="gx-sec" id="screens">
+  <h2>Экраны: курс и теория</h2>
+  <p>Каркас <code>.app</code> = <code>.topbar</code> + <code>.view</code> + <code>.tabbar</code>. На экране сессии каркас сам прячет бары (<code>.app:has(&gt; .view--session)</code>, либо класс <code>.app.is-focus</code>).</p>
+  <div class="gx-shots">
+
+    <!-- HOME -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <header class="topbar">
+          <h1 class="topbar__title">Glossa</h1>
+          <div class="topbar__stats">
+            <span class="stat stat--streak" aria-label="Серия 15 дней"><svg class="icon" aria-hidden="true"><use href="#i-flame"/></svg>15</span>
+            <span class="stat stat--goal" aria-label="Цель на день: 35 из 50 XP"><svg class="icon" aria-hidden="true"><use href="#i-goal"/></svg><span class="stat__meter"><i style="--value:.7"></i></span>35</span>
+          </div>
+        </header>
+        <main class="view view--home">
+          <div class="view__head">
+            <h2 class="view__title">Добрый вечер</h2>
+            <p class="view__sub">23 карточки ждут повторения. До дневной цели — 15 XP.</p>
+          </div>
+          <div class="daily">
+            <div><p class="daily__title">Повторение на сегодня</p><p class="daily__sub">лексика 15 · грамматика 8 · ≈ 6 мин</p></div>
+            <a class="btn btn--primary btn--sm" href="#">Начать</a>
+          </div>
+          <h3 class="section__title">Курсы</h3>
+          <div class="course-list">
+            <a class="course-card" data-lang="nb" href="#">
+              <span class="course-card__glyph" aria-hidden="true">Ø</span>
+              <div class="course-card__body">
+                <h3 class="course-card__name" lang="nb">Norsk bokmål</h3>
+                <p class="course-card__meta">Норвежский · A1–B1 <span class="chip chip--quiet">повтор</span></p>
+                <div class="progress progress--thin"><div class="progress__bar" style="--value:.64"></div></div>
+                <p class="course-card__foot">Юнит VI · Сильные глаголы</p>
+              </div>
+              <svg class="icon course-card__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </a>
+            <a class="course-card" data-lang="la" href="#">
+              <span class="course-card__glyph" aria-hidden="true">Ā</span>
+              <div class="course-card__body">
+                <h3 class="course-card__name" lang="la">Lingua Latīna</h3>
+                <p class="course-card__meta">Латынь · A1–B2 <span class="chip chip--quiet">повтор</span></p>
+                <div class="progress progress--thin"><div class="progress__bar" style="--value:.38"></div></div>
+                <p class="course-card__foot">Юнит III · Третье склонение</p>
+              </div>
+              <svg class="icon course-card__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </a>
+            <a class="course-card" data-lang="ang" href="#">
+              <span class="course-card__glyph" aria-hidden="true">Þ</span>
+              <div class="course-card__body">
+                <h3 class="course-card__name" lang="ang">Ænglisc</h3>
+                <p class="course-card__meta">Древнеанглийский · A1–B1 <span class="chip chip--quiet">повтор</span></p>
+                <div class="progress progress--thin"><div class="progress__bar" style="--value:.21"></div></div>
+                <p class="course-card__foot">Юнит II · Сильное склонение</p>
+              </div>
+              <svg class="icon course-card__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </a>
+            <a class="course-card" data-lang="it" href="#">
+              <span class="course-card__glyph" aria-hidden="true">È</span>
+              <div class="course-card__body">
+                <h3 class="course-card__name" lang="it">Italiano</h3>
+                <p class="course-card__meta">Итальянский · A2–B2 <span class="chip chip--quiet">повтор</span></p>
+                <div class="progress progress--thin"><div class="progress__bar" style="--value:.52"></div></div>
+                <p class="course-card__foot">Юнит V · Passato prossimo</p>
+              </div>
+              <svg class="icon course-card__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </a>
+            <a class="course-card is-new" data-lang="sr" href="#">
+              <span class="course-card__glyph" aria-hidden="true">Ђ</span>
+              <div class="course-card__body">
+                <h3 class="course-card__name" lang="sr">Српски / Srpski</h3>
+                <p class="course-card__meta">Сербский · с нуля</p>
+                <div class="progress progress--thin"><div class="progress__bar" style="--value:0"></div></div>
+                <p class="course-card__foot">Начать с азбуки</p>
+              </div>
+              <svg class="icon course-card__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </a>
+          </div>
+        </main>
+        <nav class="tabbar" aria-label="Разделы">
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-repeat"/></svg>Повторение<span class="tabbar__badge">23</span></a>
+          <a class="tabbar__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+      </div></div>
+      <figcaption><b>.view--home</b> — выбор курса. Буква-«образец» в <code>.course-card__glyph</code> задаёт идентичность языка.</figcaption>
+    </figure>
+
+    <!-- COURSE MAP -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app" data-lang="la">
+        <header class="topbar">
+          <a class="btn btn--icon btn--ghost topbar__back" href="#" aria-label="Назад"><svg class="icon"><use href="#i-back"/></svg></a>
+          <h1 class="topbar__title" lang="la">Lingua Latīna</h1>
+          <div class="topbar__stats">
+            <span class="stat stat--streak"><svg class="icon" aria-hidden="true"><use href="#i-flame"/></svg>15</span>
+            <span class="stat stat--xp"><svg class="icon" aria-hidden="true"><use href="#i-xp"/></svg>4 820</span>
+          </div>
+        </header>
+        <main class="view view--course">
+          <div class="units">
+            <section class="unit">
+              <header class="unit__head">
+                <span class="unit__num">II</span>
+                <div><h2 class="unit__title" lang="la">Dēclīnātiō secunda</h2><p class="unit__sub">Второе склонение</p></div>
+                <span class="badge badge--ok">4/4</span>
+              </header>
+              <ol class="unit__lessons">
+                <li><a class="lesson-node is-done" href="#"><span class="lesson-node__mark"><svg class="icon"><use href="#i-check"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">-us, -ī: servus</span><span class="lesson-node__kind">Грамматика</span></span><span class="mastery" data-level="5" role="img" aria-label="Мастерство 5 из 5"><i></i><i></i><i></i><i></i><i></i></span></a></li>
+                <li><a class="lesson-node is-done" href="#"><span class="lesson-node__mark"><svg class="icon"><use href="#i-check"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Средний род: bellum</span><span class="lesson-node__kind">Грамматика</span></span><span class="mastery" data-level="4" role="img" aria-label="Мастерство 4 из 5"><i></i><i></i><i></i><i></i><i></i></span></a></li>
+              </ol>
+            </section>
+            <section class="unit is-current">
+              <header class="unit__head">
+                <span class="unit__num">III</span>
+                <div><h2 class="unit__title" lang="la">Dēclīnātiō tertia</h2><p class="unit__sub">Третье склонение</p></div>
+                <span class="badge">2/5</span>
+              </header>
+              <ol class="unit__lessons">
+                <li><a class="lesson-node is-done" href="#"><span class="lesson-node__mark"><svg class="icon"><use href="#i-check"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Согласные основы: rēx</span><span class="lesson-node__kind">Грамматика</span></span><span class="mastery" data-level="3" role="img" aria-label="Мастерство 3 из 5"><i></i><i></i><i></i><i></i><i></i></span></a></li>
+                <li><a class="lesson-node is-done" href="#"><span class="lesson-node__mark"><svg class="icon"><use href="#i-check"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Лексика: люди и город</span><span class="lesson-node__kind">Слова</span></span><span class="mastery" data-level="2" role="img" aria-label="Мастерство 2 из 5"><i></i><i></i><i></i><i></i><i></i></span></a></li>
+                <li><a class="lesson-node is-current" href="#" aria-current="step"><span class="lesson-node__mark"><svg class="icon"><use href="#i-pilcrow"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Средний род: corpus</span><span class="lesson-node__kind">Продолжить · грамматика</span></span><span class="mastery" data-level="0" role="img" aria-label="Мастерство 0 из 5"><i></i><i></i><i></i><i></i><i></i></span></a></li>
+                <li><a class="lesson-node is-locked" aria-disabled="true"><span class="lesson-node__mark"><svg class="icon"><use href="#i-read"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Fābula: Rēx et leō</span><span class="lesson-node__kind">Чтение</span></span></a></li>
+                <li><a class="lesson-node is-locked" aria-disabled="true"><span class="lesson-node__mark"><svg class="icon"><use href="#i-repeat"/></svg></span><span class="lesson-node__body"><span class="lesson-node__title">Повторение юнита</span><span class="lesson-node__kind">Повтор</span></span></a></li>
+              </ol>
+            </section>
+            <section class="unit is-locked">
+              <header class="unit__head">
+                <span class="unit__num">IV</span>
+                <div><h2 class="unit__title" lang="la">Dēclīnātiō tertia: i-stems</h2><p class="unit__sub">3-е склонение, i-основы</p></div>
+                <svg class="icon" style="color:var(--ink-3)" aria-label="Закрыт"><use href="#i-lock"/></svg>
+              </header>
+              <p class="unit__summary">Знаете тему? Сдайте короткий тест и откройте юнит сразу.</p>
+              <button class="btn btn--outline btn--sm unit__skip"><svg class="icon"><use href="#i-skip"/></svg>Тест-переход</button>
+            </section>
+          </div>
+        </main>
+        <nav class="tabbar" aria-label="Разделы">
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-repeat"/></svg>Повторение</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+      </div></div>
+      <figcaption><b>.view--course</b> — карта юнитов как оглавление: римский номер, «корешок» с отметками уроков, мастерство ромбами.</figcaption>
+    </figure>
+
+    <!-- LESSON INTRO -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app" data-lang="la">
+        <header class="topbar">
+          <a class="btn btn--icon btn--ghost topbar__back" href="#" aria-label="К карте курса"><svg class="icon"><use href="#i-back"/></svg></a>
+          <h1 class="topbar__title">Юнит III · урок 3</h1>
+        </header>
+        <main class="view view--lesson-intro">
+          <header class="lesson-head">
+            <span class="chip chip--accent">Грамматика · 4 мин</span>
+            <h2 class="lesson-head__title">Средний род третьего склонения</h2>
+            <ul class="goals">
+              <li><svg class="icon"><use href="#i-check"/></svg>Склонять corpus, nōmen, tempus</li>
+              <li><svg class="icon"><use href="#i-check"/></svg>Помнить правило среднего рода: Nom = Acc</li>
+            </ul>
+          </header>
+          <div class="theory">
+            <p>Основа видна в генитиве: <i class="tl" lang="la">corpus</i> → <span class="tl" lang="la">corpor<span class="morph">is</span></span>. От неё строятся все падежи, кроме номинатива.</p>
+            <div class="theory__rule">
+              <p class="theory__label"><svg class="icon"><use href="#i-pilcrow"/></svg>Правило</p>
+              <p>У среднего рода номинатив и аккузатив совпадают, а во мн. ч. оканчиваются на <span class="morph">-a</span>.</p>
+            </div>
+            <div class="theory__table">
+              <table>
+                <caption><span class="tl" lang="la">corpus, corporis</span> n. — тело</caption>
+                <thead><tr><th scope="col"></th><th scope="col">Sg.</th><th scope="col">Pl.</th></tr></thead>
+                <tbody lang="la">
+                  <tr><th scope="row">Nom.</th><td>corpus</td><td>corpor<span class="morph">a</span></td></tr>
+                  <tr><th scope="row">Gen.</th><td>corpor<span class="morph">is</span></td><td>corpor<span class="morph">um</span></td></tr>
+                  <tr><th scope="row">Dat.</th><td>corpor<span class="morph">ī</span></td><td>corpor<span class="morph">ibus</span></td></tr>
+                  <tr><th scope="row">Acc.</th><td>corpus</td><td>corpor<span class="morph">a</span></td></tr>
+                  <tr><th scope="row">Abl.</th><td>corpor<span class="morph">e</span></td><td>corpor<span class="morph">ibus</span></td></tr>
+                </tbody>
+              </table>
+              <p class="theory__note">Долготы можно не вводить: <i>corpori</i> = <i>corporī</i>.</p>
+            </div>
+            <ul class="theory__examples">
+              <li><p class="tl" lang="la">Mēns sāna in corpor<span class="morph">e</span> sānō.</p><p class="ru">В здоровом теле здоровый дух.</p></li>
+              <li><p class="tl" lang="la">Tempor<span class="morph">a</span> mūtantur.</p><p class="ru">Времена меняются.</p><p class="note">Nom. pl. n. → -a</p></li>
+            </ul>
+            <div class="theory__contrast">
+              <p class="theory__label"><svg class="icon"><use href="#i-swap"/></svg>Как в русском</p>
+              <p>Как <i>время — времени</i>: короткий номинатив, а в косвенных падежах «вырастает» основа.</p>
+            </div>
+            <div class="theory__tip">
+              <p class="theory__label"><svg class="icon"><use href="#i-bulb"/></svg>Запомнить</p>
+              <p>«Средний род не различает, кто действует и над кем»: Nom = Acc всегда.</p>
+            </div>
+            <div class="theory__pitfall">
+              <p class="theory__label"><svg class="icon"><use href="#i-warn"/></svg>Ловушка</p>
+              <p><i lang="la">corpus</i> — не второе склонение! Не <s>corpī</s>, а <i lang="la">corporis</i>.</p>
+            </div>
+          </div>
+          <div class="view__actions">
+            <button class="btn btn--primary btn--block">Начать упражнения</button>
+          </div>
+        </main>
+      </div></div>
+      <figcaption><b>.view--lesson-intro</b> — все блоки теории: <code>p, rule, table, examples, contrast, tip, pitfall</code> и <code>.morph</code>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================= EXERCISES ============================ -->
+<section class="gx-sec" id="ex">
+  <h2>Сессия: 9 типов упражнений</h2>
+  <p>Задание крупно вверху, ввод — в зоне большого пальца, кнопка «Проверить» и feedback-панель — в одном месте внизу. Клавиши 1–4 и Enter на десктопе.</p>
+  <div class="gx-shots">
+
+    <!-- CHOICE: selected -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="nb">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12" role="progressbar" aria-label="Прогресс урока" aria-valuemin="0" aria-valuemax="12" aria-valuenow="3"><div class="progress__bar" style="--value:calc(3/12)"></div></div>
+            <span class="session__count">4/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--choice">
+              <div class="ex__meta"><span class="chip chip--quiet ex__skill">Род существительных</span></div>
+              <p class="ex__prompt">Выберите артикль</p>
+              <p class="ex__q" lang="nb">Vi bor i ___ hus ved sjøen.</p>
+              <div class="options" role="radiogroup" aria-label="Варианты">
+                <button class="option" role="radio" aria-checked="false"><kbd class="option__key">1</kbd><span class="option__text" lang="nb">en</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+                <button class="option" role="radio" aria-checked="false"><kbd class="option__key">2</kbd><span class="option__text" lang="nb">ei</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+                <button class="option is-selected" role="radio" aria-checked="true"><kbd class="option__key">3</kbd><span class="option__text" lang="nb">et</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block">Проверить <span class="btn__hint">Enter</span></button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--choice</b>, вариант выбран (<code>.option.is-selected</code>, role=radio).</figcaption>
+    </figure>
+
+    <!-- CHOICE: correct + sheet -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="nb">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(4/12)"></div></div>
+            <span class="session__count">4/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--choice">
+              <p class="ex__prompt">Выберите артикль</p>
+              <p class="ex__q" lang="nb">Vi bor i ___ hus ved sjøen.</p>
+              <div class="options is-locked">
+                <button class="option" disabled><kbd class="option__key">1</kbd><span class="option__text" lang="nb">en</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+                <button class="option" disabled><kbd class="option__key">2</kbd><span class="option__text" lang="nb">ei</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+                <button class="option is-correct" disabled><kbd class="option__key">3</kbd><span class="option__text" lang="nb">et</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer" inert>
+            <button class="btn btn--primary btn--block">Проверить</button>
+          </footer>
+          <div class="sheet feedback feedback--correct is-open" role="status" aria-live="polite">
+            <div class="sheet__inner">
+              <div class="feedback__head">
+                <span class="feedback__icon" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+                <h2 class="feedback__title">Верно</h2>
+                <span class="feedback__xp">+15 XP</span>
+              </div>
+              <p class="feedback__explain"><b lang="nb">hus</b> — средний род: <i lang="nb">et hus, huset</i>. Почти все односложные слова на -s в norsk — среднего рода.</p>
+              <div class="feedback__actions">
+                <button class="btn btn--primary btn--block feedback__next">Дальше <span class="btn__hint">Enter</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div></div>
+      <figcaption><b>.feedback--correct</b> в <code>.sheet.is-open</code>: иконка + «Верно» + XP + пояснение. Кнопка «Дальше» на месте «Проверить».</figcaption>
+    </figure>
+
+    <!-- CLOZE: wrong -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="la">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(6/12)"></div></div>
+            <span class="session__count">6/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--cloze">
+              <p class="ex__prompt">Вставьте форму в нужном падеже</p>
+              <p class="ex__q" lang="la">Puer librum <input class="input input--inline is-wrong" style="--chars:5" value="rēgō" aria-label="Пропуск 1: rēx" aria-invalid="true" readonly> dat.</p>
+              <p class="ex__hint">Подсказка: <b lang="la">rēx, rēgis</b> m. — царь</p>
+            </article>
+          </div>
+          <div class="sheet feedback feedback--wrong is-open" role="alert">
+            <div class="sheet__inner">
+              <div class="feedback__head">
+                <span class="feedback__icon" aria-hidden="true"><svg class="icon"><use href="#i-x"/></svg></span>
+                <h2 class="feedback__title">Неверно</h2>
+              </div>
+              <p class="feedback__answer"><span class="label">Правильный ответ</span><span class="tl" lang="la">rēg<span class="morph">ī</span></span></p>
+              <p class="feedback__mine">Ваш ответ: <s lang="la">rēgō</s></p>
+              <p class="feedback__explain">Датив ед. ч. 3-го склонения — <b>-ī</b>. Окончание <b>-ō</b> — от 2-го склонения (<i lang="la">servō</i>). Слово уйдёт в банк ошибок.</p>
+              <div class="feedback__actions">
+                <button class="btn btn--primary btn--block feedback__next">Понятно</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--cloze</b> + <b>.feedback--wrong</b>: правильный ответ, ваш ответ зачёркнут, объяснение с опорой на парадигму.</figcaption>
+    </figure>
+
+    <!-- TRANSLATE: almost + keyboard -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="ang">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(8/12)"></div></div>
+            <span class="session__count">8/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--translate">
+              <p class="ex__prompt">Переведите на древнеанглийский</p>
+              <p class="ex__q ex__q--ru">Король видит корабль.</p>
+              <textarea class="input input--area is-almost" lang="ang" aria-label="Ваш перевод" readonly>Se cyning sihþ þæt scipp</textarea>
+              <div class="keyboard" role="group" aria-label="Особые символы">
+                <button class="keyboard__key" type="button">æ</button><button class="keyboard__key" type="button">þ</button><button class="keyboard__key" type="button">ð</button><button class="keyboard__key" type="button">ƿ</button><button class="keyboard__key" type="button">ȝ</button><button class="keyboard__key" type="button">ā</button><button class="keyboard__key" type="button">ē</button>
+              </div>
+            </article>
+          </div>
+          <div class="sheet feedback feedback--almost is-open" role="status" aria-live="polite">
+            <div class="sheet__inner">
+              <div class="feedback__head">
+                <span class="feedback__icon" aria-hidden="true"><svg class="icon"><use href="#i-almost"/></svg></span>
+                <h2 class="feedback__title">Почти верно</h2>
+                <span class="feedback__xp">+10 XP</span>
+              </div>
+              <p class="feedback__answer"><span class="label">Правильно</span><span class="tl" lang="ang">Se cyning sihþ þæt scip</span></p>
+              <p class="feedback__mine">Ваш ответ: <span lang="ang">Se cyning sihþ þæt scip<span class="feedback__diff">p</span></span></p>
+              <p class="feedback__explain">Опечатка в одну букву — ответ засчитан. <i lang="ang">scip</i> n. «корабль» пишется с одной <i>p</i>.</p>
+              <div class="feedback__actions">
+                <button class="btn btn--primary btn--block feedback__next">Дальше</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--translate</b> с <code>.keyboard</code> (æ þ ð ƿ ȝ) и <b>.feedback--almost</b>: отличие подсвечено <code>.feedback__diff</code>.</figcaption>
+    </figure>
+
+    <!-- ORDER -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="it">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(2/12)"></div></div>
+            <span class="session__count">3/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--order">
+              <p class="ex__prompt">Соберите фразу</p>
+              <p class="ex__q ex__q--ru">Я (жен.) пошла на рынок.</p>
+              <div class="answer-line" data-placeholder="Нажимайте на слова по порядку" aria-label="Ваш ответ">
+                <button class="tile" lang="it">Sono</button><button class="tile" lang="it">andata</button>
+              </div>
+              <div class="tiles" aria-label="Слова">
+                <button class="tile" lang="it">al</button>
+                <button class="tile is-used" lang="it" aria-hidden="true" tabindex="-1">Sono</button>
+                <button class="tile" lang="it">ho</button>
+                <button class="tile" lang="it">mercato</button>
+                <button class="tile is-used" lang="it" aria-hidden="true" tabindex="-1">andata</button>
+                <button class="tile" lang="it">andato</button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--icon btn--outline" aria-label="Очистить"><svg class="icon"><use href="#i-backspace"/></svg></button>
+            <button class="btn btn--primary btn--block">Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--order</b>: <code>.answer-line</code> — разлинованная строка; в банке <code>.tiles</code> использованная плитка оставляет пустое место (<code>.tile.is-used</code>).</figcaption>
+    </figure>
+
+    <!-- MATCH -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="sr">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(1/12)"></div></div>
+            <span class="session__count">2/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--match">
+              <p class="ex__prompt">Сопоставьте пары</p>
+              <div class="pairs">
+                <div class="pairs__col">
+                  <button class="pair is-matched" lang="sr" disabled>кућа</button>
+                  <button class="pair is-selected" lang="sr" aria-pressed="true">пријатељ</button>
+                  <button class="pair" lang="sr">књига</button>
+                  <button class="pair" lang="sr">јабука</button>
+                  <button class="pair" lang="sr">ђак</button>
+                </div>
+                <div class="pairs__col">
+                  <button class="pair">книга</button>
+                  <button class="pair is-matched" disabled>дом</button>
+                  <button class="pair is-wrong">ученик</button>
+                  <button class="pair">друг</button>
+                  <button class="pair">яблоко</button>
+                </div>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block" disabled>Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--match</b>: <code>.pair.is-selected</code>, <code>.is-matched</code> (гаснет), <code>.is-wrong</code> (короткая тряска). Пары проверяются сразу.</figcaption>
+    </figure>
+
+    <!-- PARADIGM -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="la">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(9/12)"></div></div>
+            <span class="session__count">10/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--paradigm">
+              <p class="ex__prompt">Заполните парадигму</p>
+              <div class="paradigm-wrap">
+                <table class="paradigm" lang="la">
+                  <caption>nōmen, nōminis <small>n. — имя</small></caption>
+                  <thead><tr><th></th><th scope="col">Sg.</th><th scope="col">Pl.</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">Nom.</th><td class="is-given">nōmen</td><td><input class="input input--cell is-correct" value="nōmina" aria-label="Nom. Pl." readonly></td></tr>
+                    <tr><th scope="row">Gen.</th><td><input class="input input--cell is-correct" value="nominis" aria-label="Gen. Sg." readonly></td><td><input class="input input--cell is-wrong" value="nominorum" aria-label="Gen. Pl." aria-invalid="true" readonly></td></tr>
+                    <tr><th scope="row">Dat.</th><td class="is-given">nōminī</td><td><input class="input input--cell" aria-label="Dat. Pl."></td></tr>
+                    <tr><th scope="row">Acc.</th><td><input class="input input--cell" aria-label="Acc. Sg."></td><td class="is-given">nōmina</td></tr>
+                    <tr><th scope="row">Abl.</th><td class="is-given">nōmine</td><td><input class="input input--cell" aria-label="Abl. Pl."></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="keyboard" role="group" aria-label="Особые символы">
+                <button class="keyboard__key" type="button">ā</button><button class="keyboard__key" type="button">ē</button><button class="keyboard__key" type="button">ī</button><button class="keyboard__key" type="button">ō</button><button class="keyboard__key" type="button">ū</button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block">Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--paradigm</b>: <code>table.paradigm</code>, данные ячейки <code>td.is-given</code>, пропуски — <code>.input--cell</code> (показаны состояния после проверки).</figcaption>
+    </figure>
+
+    <!-- CLASSIFY -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="nb">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(6/12)"></div></div>
+            <span class="session__count">7/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--classify">
+              <p class="ex__prompt">Разложите по родам: выберите слово, затем корзину</p>
+              <div class="tiles">
+                <button class="tile is-selected" lang="nb" aria-pressed="true">jente</button>
+                <button class="tile" lang="nb">eple</button>
+                <button class="tile" lang="nb">gutt</button>
+                <button class="tile is-used" aria-hidden="true" tabindex="-1">bil</button>
+                <button class="tile is-used" aria-hidden="true" tabindex="-1">hus</button>
+              </div>
+              <div class="buckets">
+                <button class="bucket is-target"><span class="bucket__title"><span><b lang="nb">en</b>мужской</span><span class="badge">1</span></span><span class="bucket__items"><span class="tile" lang="nb">bil</span></span></button>
+                <button class="bucket is-target"><span class="bucket__title"><span><b lang="nb">ei</b>женский</span><span class="badge">0</span></span><span class="bucket__items"></span></button>
+                <button class="bucket is-target"><span class="bucket__title"><span><b lang="nb">et</b>средний</span><span class="badge">1</span></span><span class="bucket__items"><span class="tile" lang="nb">hus</span></span></button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block" disabled>Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--classify</b>: тап-тап вместо drag (одна рука). Выбранная плитка <code>.is-selected</code>, корзины подсвечены <code>.bucket.is-target</code>.</figcaption>
+    </figure>
+
+    <!-- TRANSFORM -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="it">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(10/12)"></div></div>
+            <span class="session__count">11/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--transform">
+              <p class="ex__prompt">Поставьте в passato prossimo</p>
+              <div class="ex__source">
+                <span class="label">Presente</span>
+                <p class="tl" lang="it">Maria va al cinema.</p>
+              </div>
+              <p class="ex__arrow"><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg><span>Passato prossimo: какой вспомогательный — <b lang="it">essere</b> или <b lang="it">avere</b>?</span></p>
+              <input class="input" lang="it" value="Maria è andata al " aria-label="Ваш ответ" autocapitalize="off" autocomplete="off" spellcheck="false">
+              <div class="keyboard" role="group" aria-label="Особые символы">
+                <button class="keyboard__key" type="button">à</button><button class="keyboard__key" type="button">è</button><button class="keyboard__key" type="button">é</button><button class="keyboard__key" type="button">ì</button><button class="keyboard__key" type="button">ò</button><button class="keyboard__key" type="button">ù</button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block">Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--transform</b>: исходник в <code>.ex__source</code>, инструкция-мостик <code>.ex__arrow</code>, поле с фокусом.</figcaption>
+    </figure>
+
+    <!-- FIX -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <section class="view view--session" data-lang="ang">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:12"><div class="progress__bar" style="--value:calc(11/12)"></div></div>
+            <span class="session__count">12/12</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--fix">
+              <p class="ex__prompt">Найдите ошибку и исправьте её</p>
+              <p class="ex__gloss" style="margin-top:0">«Королева добра»</p>
+              <div class="tokens" lang="ang">
+                <button class="token is-selected" aria-pressed="true">Se</button>
+                <button class="token">cwēn</button>
+                <button class="token">is</button>
+                <button class="token">gōd</button>
+              </div>
+              <input class="input" lang="ang" placeholder="Правильная форма" value="Sēo" aria-label="Исправление для «Se»">
+              <div class="keyboard" role="group" aria-label="Особые символы">
+                <button class="keyboard__key" type="button">æ</button><button class="keyboard__key" type="button">þ</button><button class="keyboard__key" type="button">ð</button><button class="keyboard__key" type="button">ē</button><button class="keyboard__key" type="button">ō</button>
+              </div>
+            </article>
+          </div>
+          <footer class="session__footer">
+            <button class="btn btn--primary btn--block">Проверить</button>
+          </footer>
+        </section>
+      </div></div>
+      <figcaption><b>.ex--fix</b>: слова — кнопки <code>.token</code>; выбранное <code>.is-selected</code> зачёркивается, ниже — поле для исправления.</figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ================== RESULT / REVIEW / VOCAB / PROFILE =============== -->
+<section class="gx-sec" id="more">
+  <h2>Результат, повторение, словарь, профиль</h2>
+  <p>Итоги — «колофоном» с точечными линиями, как в оглавлении; словарь — как словарная статья.</p>
+  <div class="gx-shots">
+
+    <!-- RESULT -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <main class="view view--result" data-lang="la">
+          <div class="result">
+            <div class="result__seal" aria-hidden="true"><svg class="icon" style="width:40px;height:40px;stroke-width:2"><use href="#i-check"/></svg></div>
+            <h2 class="result__title">Урок пройден</h2>
+            <p class="result__sub">Средний род третьего склонения</p>
+            <span class="mastery mastery--lg" data-level="3" role="img" aria-label="Мастерство выросло до 4 из 5"><i></i><i></i><i></i><i class="is-on is-new"></i><i></i></span>
+            <div class="ledger">
+              <p class="ledger__row" style="--i:0"><span class="ledger__label">Опыт</span><span class="ledger__dots"></span><span class="ledger__value ledger__value--xp">+65 XP</span></p>
+              <p class="ledger__row" style="--i:1"><span class="ledger__label">Точность</span><span class="ledger__dots"></span><span class="ledger__value">11 из 12 · 92 %</span></p>
+              <p class="ledger__row" style="--i:2"><span class="ledger__label">С первой попытки</span><span class="ledger__dots"></span><span class="ledger__value">10</span></p>
+              <p class="ledger__row" style="--i:3"><span class="ledger__label">Время</span><span class="ledger__dots"></span><span class="ledger__value">6:42</span></p>
+              <p class="ledger__row" style="--i:4"><span class="ledger__label">Серия</span><span class="ledger__dots"></span><span class="ledger__value ledger__value--ok">16 дней</span></p>
+            </div>
+            <div class="mistakes">
+              <h3 class="section__title">В банк ошибок <small>вернутся в повторении</small></h3>
+              <ul>
+                <li><span class="tl" lang="la">rēg<span class="morph">ī</span></span><span class="badge badge--bad">Dat. Sg.</span><span class="ru">не rēgō — 2-е скл.</span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="view__actions">
+            <button class="btn btn--primary btn--block">Дальше</button>
+            <button class="btn btn--ghost btn--block">Повторить ошибки</button>
+          </div>
+        </main>
+      </div></div>
+      <figcaption><b>.view--result</b>: печать <code>.result__seal</code> (золотая — <code>--perfect</code>), новый ромб мастерства <code>i.is-new</code>, <code>.ledger</code>.</figcaption>
+    </figure>
+
+    <!-- REVIEW -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <header class="topbar">
+          <h1 class="topbar__title">Повторение</h1>
+          <div class="topbar__stats"><span class="stat stat--streak is-inactive"><svg class="icon"><use href="#i-flame"/></svg>15</span></div>
+        </header>
+        <main class="view view--review">
+          <div class="review-hero">
+            <p class="review-hero__count">23<small>карточки к повтору</small></p>
+            <div class="chip-row"><span class="chip">Лексика 15</span><span class="chip">Грамматика 8</span><span class="chip">Банк ошибок 4</span></div>
+            <button class="btn btn--primary btn--block">Повторить всё · ≈ 6 мин</button>
+          </div>
+          <section class="section">
+            <h3 class="section__title">Ближайшие 7 дней</h3>
+            <div class="forecast" aria-label="Прогноз повторений по дням">
+              <div class="forecast__day is-today"><span class="forecast__bar" style="--v:1"></span>сег</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.55"></span>пн</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.3"></span>вт</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.7"></span>ср</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.2"></span>чт</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.4"></span>пт</div>
+              <div class="forecast__day"><span class="forecast__bar" style="--v:.15"></span>сб</div>
+            </div>
+          </section>
+          <section class="section">
+            <h3 class="section__title">По курсам</h3>
+            <ul class="list">
+              <li class="list__item" data-lang="nb"><div><p class="list__title" lang="nb">Norsk bokmål</p><p class="list__sub">9 слов · 3 навыка</p></div><button class="btn btn--sm btn--outline">12</button></li>
+              <li class="list__item" data-lang="la"><div><p class="list__title" lang="la">Lingua Latīna</p><p class="list__sub">4 слова · 4 навыка</p></div><button class="btn btn--sm btn--outline">8</button></li>
+              <li class="list__item" data-lang="ang"><div><p class="list__title" lang="ang">Ænglisc</p><p class="list__sub">3 слова</p></div><button class="btn btn--sm btn--outline">3</button></li>
+            </ul>
+          </section>
+        </main>
+        <nav class="tabbar">
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon"><use href="#i-repeat"/></svg>Повторение</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+      </div></div>
+      <figcaption><b>.view--review</b>: очередь, прогноз <code>.forecast</code>, список <code>.list</code>. Серия ещё не продлена сегодня — пламя серое.</figcaption>
+    </figure>
+
+    <!-- REVIEW EMPTY -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <header class="topbar"><h1 class="topbar__title">Повторение</h1><div class="topbar__stats"><span class="stat stat--streak"><svg class="icon"><use href="#i-flame"/></svg>16</span></div></header>
+        <main class="view view--review">
+          <div class="empty">
+            <span class="empty__orn" aria-hidden="true"><i></i><i></i><i></i></span>
+            <h2 class="empty__title">На сегодня всё повторено</h2>
+            <p class="empty__text">Следующие 12 карточек — завтра утром. Можно пройти новый урок или перечитать теорию.</p>
+            <a class="btn btn--outline" href="#">К курсам</a>
+          </div>
+        </main>
+        <nav class="tabbar">
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon"><use href="#i-repeat"/></svg>Повторение</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+        <div class="toast toast--ok" role="status"><svg class="icon"><use href="#i-check"/></svg>Дневная цель выполнена: 50 XP</div>
+      </div></div>
+      <figcaption><b>.empty</b> с типографским орнаментом (hedera) и <b>.toast</b>.</figcaption>
+    </figure>
+
+    <!-- VOCAB -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app" data-lang="nb">
+        <header class="topbar"><h1 class="topbar__title">Словарь</h1><div class="topbar__stats"><span class="badge">640 слов</span></div></header>
+        <main class="view view--vocab">
+          <div class="vocab-tools">
+            <label class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input class="input input--search" type="search" placeholder="Слово или перевод" aria-label="Поиск по словарю"></label>
+            <div class="chip-row chip-row--scroll"><button class="chip" aria-pressed="true">Все</button><button class="chip" aria-pressed="false">К повтору 9</button><button class="chip" aria-pressed="false">Сущ.</button><button class="chip" aria-pressed="false">Глаг.</button><button class="chip" aria-pressed="false">Слабые</button></div>
+          </div>
+          <div class="dict">
+            <h3 class="dict__letter" lang="nb">B</h3>
+            <article class="entry is-due">
+              <p class="entry__head" lang="nb"><span class="entry__word">bil</span> <span class="entry__pos">m.</span> <span class="entry__forms">bilen, biler, bilene</span></p>
+              <p class="entry__gloss">машина, автомобиль</p>
+              <p class="entry__ex"><span class="tl" lang="nb">Bilen er ny.</span> — Машина новая.</p>
+              <div class="entry__side"><button class="btn btn--icon btn--ghost" aria-label="Озвучить bil"><svg class="icon"><use href="#i-speaker"/></svg></button><span class="mastery" data-level="2" role="img" aria-label="Мастерство 2 из 5"><i></i><i></i><i></i><i></i><i></i></span></div>
+            </article>
+            <article class="entry">
+              <p class="entry__head" lang="nb"><span class="entry__word">bok</span> <span class="entry__pos">f./m.</span> <span class="entry__forms">boka/boken, bøker, bøkene</span></p>
+              <p class="entry__gloss">книга</p>
+              <div class="entry__side"><button class="btn btn--icon btn--ghost" aria-label="Озвучить bok"><svg class="icon"><use href="#i-speaker"/></svg></button><span class="mastery" data-level="4" role="img" aria-label="Мастерство 4 из 5"><i></i><i></i><i></i><i></i><i></i></span></div>
+            </article>
+            <article class="entry">
+              <p class="entry__head" lang="nb"><span class="entry__word">bygge</span> <span class="entry__pos">v.</span> <span class="entry__forms">bygger, bygde, har bygd</span></p>
+              <p class="entry__gloss">строить</p>
+              <div class="entry__side"><button class="btn btn--icon btn--ghost" aria-label="Озвучить bygge"><svg class="icon"><use href="#i-speaker"/></svg></button><span class="mastery" data-level="5" role="img" aria-label="Мастерство 5 из 5"><i></i><i></i><i></i><i></i><i></i></span></div>
+            </article>
+            <h3 class="dict__letter" lang="nb">Æ</h3>
+            <article class="entry">
+              <p class="entry__head" lang="nb"><span class="entry__word">ære</span> <span class="entry__pos">m.</span> <span class="entry__forms">æren</span></p>
+              <p class="entry__gloss">честь</p>
+              <div class="entry__side"><span class="mastery" data-level="1" role="img" aria-label="Мастерство 1 из 5"><i></i><i></i><i></i><i></i><i></i></span></div>
+            </article>
+          </div>
+        </main>
+        <nav class="tabbar">
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-repeat"/></svg>Повторение</a>
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+      </div></div>
+      <figcaption><b>.view--vocab</b>: статья <code>.entry</code> — лемма, помета, формы курсивом, толкование; точка у слова к повтору (<code>.entry.is-due</code>).</figcaption>
+    </figure>
+
+    <!-- PROFILE -->
+    <figure class="gx-shot">
+      <div class="gx-frame"><div class="app">
+        <header class="topbar"><h1 class="topbar__title">Профиль</h1></header>
+        <main class="view view--profile">
+          <div class="rank">
+            <span class="rank__seal" aria-hidden="true">IV</span>
+            <div><p class="rank__title">Схоласт</p><p class="rank__sub">4 820 XP · до «Глоссатора» 1 180</p></div>
+            <div class="progress"><div class="progress__bar" style="--value:.8"></div></div>
+          </div>
+          <section class="section">
+            <dl class="stats-grid">
+              <div><dt>Серия, дней</dt><dd>15</dd></div>
+              <div><dt>Опыт</dt><dd>4 820</dd></div>
+              <div><dt>Уроков</dt><dd>86</dd></div>
+              <div><dt>Слов выучено</dt><dd>640</dd></div>
+            </dl>
+          </section>
+          <section class="section">
+            <h3 class="section__title">Серия <small><svg class="icon" aria-hidden="true"><use href="#i-snow"/></svg> 2 заморозки</small></h3>
+            <div class="streak-cal" aria-label="Последние 28 дней">
+              <i class="is-on"></i><i class="is-on"></i><i></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i>
+              <i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-frozen"></i><i class="is-on"></i><i class="is-on"></i>
+              <i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i>
+              <i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-today"></i>
+            </div>
+          </section>
+          <section class="section">
+            <h3 class="section__title">Достижения <small>5 из 18</small></h3>
+            <div class="achievements">
+              <div class="achievement is-earned"><span class="achievement__icon"><svg class="icon"><use href="#i-flame"/></svg></span><div><p class="achievement__title">Неделя без пропусков</p><p class="achievement__desc">Серия 7 дней</p></div></div>
+              <div class="achievement is-earned is-new"><span class="achievement__icon"><svg class="icon"><use href="#i-medal"/></svg></span><div><p class="achievement__title">Без единой ошибки</p><p class="achievement__desc">Идеальный урок</p></div></div>
+              <div class="achievement is-earned"><span class="achievement__icon"><svg class="icon"><use href="#i-pilcrow"/></svg></span><div><p class="achievement__title">Падежи покорены</p><p class="achievement__desc">Навык на 5</p></div></div>
+              <div class="achievement"><span class="achievement__icon"><svg class="icon"><use href="#i-book"/></svg></span><div><p class="achievement__title">Полиглот</p><p class="achievement__desc">Уроки в 3 курсах</p><div class="progress progress--thin"><div class="progress__bar" style="--value:.66"></div></div></div></div>
+            </div>
+          </section>
+          <section class="section">
+            <h3 class="section__title">Настройки</h3>
+            <div class="settings">
+              <div class="setting setting--stack"><p class="setting__label">Цель на день</p><div class="chip-row" role="radiogroup"><button class="chip" role="radio" aria-checked="false">20</button><button class="chip" role="radio" aria-checked="true">50</button><button class="chip" role="radio" aria-checked="false">100</button><button class="chip" role="radio" aria-checked="false">200 XP</button></div></div>
+              <div class="setting"><p class="setting__label">Тема</p><div class="segmented" role="group"><button aria-pressed="true">Авто</button><button aria-pressed="false">Светлая</button><button aria-pressed="false">Тёмная</button></div></div>
+              <div class="setting"><p class="setting__label">Вибрация</p><p class="setting__hint">Короткий отклик на ответ</p><button class="switch" role="switch" aria-checked="true" aria-label="Вибрация"></button></div>
+              <div class="setting"><p class="setting__label">Озвучка</p><p class="setting__hint">Норвежский, итальянский, сербский</p><button class="switch" role="switch" aria-checked="false" aria-label="Озвучка"></button></div>
+              <div class="setting"><p class="setting__label">Резервная копия</p><p class="setting__hint">Файл JSON с прогрессом</p><button class="btn btn--sm btn--outline">Экспорт</button></div>
+            </div>
+            <div class="btn-row" style="margin-top:var(--s-4)"><button class="btn btn--outline">Импорт</button><button class="btn btn--danger">Сбросить</button></div>
+          </section>
+        </main>
+        <nav class="tabbar">
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-book"/></svg>Курсы</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-repeat"/></svg>Повторение</a>
+          <a class="tabbar__item" href="#"><svg class="icon"><use href="#i-dict"/></svg>Словарь</a>
+          <a class="tabbar__item is-active" aria-current="page" href="#"><svg class="icon"><use href="#i-user"/></svg>Профиль</a>
+        </nav>
+        <div class="toast toast--achievement" role="status"><svg class="icon"><use href="#i-medal"/></svg>Новое достижение: «Без единой ошибки»</div>
+      </div></div>
+      <figcaption><b>.view--profile</b>: звание, статистика, календарь серии, <code>.achievement(.is-earned)</code>, настройки (<code>.setting</code>, <code>.segmented</code>, <code>.switch</code>).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================== DESKTOP ============================= -->
+<section class="gx-sec" id="desk">
+  <h2>Десктоп</h2>
+  <p>Каркас растягивается, контент — центрированная колонка (40rem для чтения и упражнений, 56rem для карты и профиля). Откройте страницу на широком экране — фреймы ниже используют реальные медиазапросы.</p>
+  <div class="gx-shots">
+    <figure class="gx-shot" style="width:100%">
+      <div class="gx-frame gx-frame--wide"><div class="app">
+        <section class="view view--session" data-lang="sr">
+          <header class="session__bar">
+            <button class="btn btn--icon btn--ghost" aria-label="Завершить урок"><svg class="icon"><use href="#i-x"/></svg></button>
+            <div class="progress progress--ticks" style="--steps:10"><div class="progress__bar" style="--value:calc(3/10)"></div></div>
+            <span class="session__count">4/10</span>
+          </header>
+          <div class="session__body">
+            <article class="ex ex--choice">
+              <div class="ex__meta"><span class="chip chip--quiet ex__skill">Падежи: локатив</span></div>
+              <p class="ex__prompt">Выберите форму</p>
+              <p class="ex__q" lang="sr">Живим у великој ___ .</p>
+              <p class="ex__gloss">Я живу в большом городе.</p>
+              <div class="options options--grid">
+                <button class="option"><kbd class="option__key">1</kbd><span class="option__text" lang="sr">град</span><svg class="icon option__state"><use href="#i-x"/></svg></button>
+                <button class="option is-wrong"><kbd class="option__key">2</kbd><span class="option__text" lang="sr">граду</span><svg class="icon option__state"><use href="#i-x"/></svg></button>
+                <button class="option"><kbd class="option__key">3</kbd><span class="option__text" lang="sr">селу</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+                <button class="option is-correct"><kbd class="option__key">4</kbd><span class="option__text" lang="sr">кући</span><svg class="icon option__state"><use href="#i-check"/></svg></button>
+              </div>
+            </article>
+          </div>
+          <div class="sheet feedback feedback--wrong is-open" role="alert">
+            <div class="sheet__inner">
+              <div class="feedback__head">
+                <span class="feedback__icon" aria-hidden="true"><svg class="icon"><use href="#i-x"/></svg></span>
+                <h2 class="feedback__title">Неверно</h2>
+              </div>
+              <p class="feedback__answer"><span class="label">Правильно</span><span class="tl" lang="sr">Живим у великој кући.</span></p>
+              <p class="feedback__explain"><b>великој</b> — прилагательное ж. р., значит и существительное женского рода: <i lang="sr">кућа → у кући</i> (локатив на <b>-и</b>). <i lang="sr">Град</i> — мужского рода. Как в русском «в большой» требует сущ. ж. р.</p>
+              <div class="feedback__actions">
+                <button class="btn btn--primary btn--block feedback__next">Понятно <span class="btn__hint">Enter</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div></div>
+      <figcaption><b>Десктоп, сессия</b>: <code>.options--grid</code> (2 колонки), подсказки клавиш 1–4 видны только при мыши/клавиатуре, sheet ограничен шириной колонки.</figcaption>
+    </figure>
+  </div>
+</section>
+
+</main>
+
+<script>
+  // Theme switcher (gallery only). The app should do the same on <html>.
+  (function () {
+    var root = document.documentElement;
+    var btns = document.querySelectorAll('[data-set-theme]');
+    function apply(t) {
+      if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.setTheme === t)); });
+      try { localStorage.setItem('glossa:gallery-theme', t); } catch (e) {}
+    }
+    var saved = 'auto';
+    try { saved = localStorage.getItem('glossa:gallery-theme') || 'auto'; } catch (e) {}
+    apply(saved);
+    btns.forEach(function (b) { b.addEventListener('click', function () { apply(b.dataset.setTheme); }); });
+  })();
+</script>
+</body>
+</html>
