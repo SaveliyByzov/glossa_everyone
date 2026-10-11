@@ -24,5 +24,6 @@ export default [
  "data/sr/u09.ex.js",
  "data/sr/u09.js",
  "data/sr/u10.ex.js",
- "data/sr/u10.js"
+ "data/sr/u10.js",
+ "data/sync.js"
 ];

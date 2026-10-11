@@ -1,0 +1,26 @@
+# Один Worker обслуживает оба приложения (Glossa и Srpski): пространство имён — префикс id.
+name = "glossa-sync"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+# Создайте namespace: npx wrangler kv namespace create BLOBS — и вставьте выданный id сюда.
+[[kv_namespaces]]
+binding = "BLOBS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Никаких логов: в коде нет console.*, а платформенные логи и трассировка выключены.
+[observability]
+enabled = false
+
+[vars]
+# Разрешённые источники (через запятую), напр. "https://user.github.io". Пусто = любой (данные зашифрованы).
+ALLOWED_ORIGINS = ""
+
+# Необязательный лимит запросов с одного IP (60 в минуту). Если wrangler не принимает блок
+# (синтаксис меняется) — закомментируйте его: Worker работает и без лимита.
+[[unsafe.bindings]]
+name = "RL"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }

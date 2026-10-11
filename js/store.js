@@ -25,6 +25,7 @@ export function emptyState() {
       answers: 0,
       correct: 0,
     },
+    settingsAt: 0,             // когда настройки менялись в последний раз (для слияния при синхронизации)
     achievements: {},          // id → timestamp
     lastCourse: null,
     courses: {},               // id → courseState()
@@ -73,6 +74,7 @@ export function migrate(raw) {
 
 export function createStore(storage = globalThis.localStorage) {
   let state;
+  let settingsSig = '';
   const listeners = new Set();
 
   function load() {
@@ -85,10 +87,14 @@ export function createStore(storage = globalThis.localStorage) {
       try { storage?.setItem(`${STORAGE_KEY}:broken:${Date.now()}`, storage.getItem(STORAGE_KEY)); } catch {}
       state = emptyState();
     }
+    settingsSig = JSON.stringify(state.settings);
     return state;
   }
 
   function save() {
+    // отметка времени изменения настроек: нужна, чтобы при слиянии «последнее изменение побеждает»
+    const sig = JSON.stringify(state.settings);
+    if (sig !== settingsSig) { settingsSig = sig; state.settingsAt = Date.now(); }
     try { storage?.setItem(STORAGE_KEY, JSON.stringify(state)); }
     catch (err) { console.error('[glossa] не удалось сохранить прогресс', err); }
     for (const fn of listeners) fn(state);
@@ -108,6 +114,8 @@ export function createStore(storage = globalThis.localStorage) {
     },
     exportJSON() { return JSON.stringify({ ...this.state, exportedAt: new Date().toISOString() }, null, 2); },
     importJSON(text) { state = migrate(JSON.parse(text)); save(); return state; },
+    /** Заменить состояние целиком (результат слияния при синхронизации); тихо, без отметки настроек. */
+    replaceState(next) { state = migrate(next); settingsSig = JSON.stringify(state.settings); save(); return state; },
     reset() { state = emptyState(); save(); },
   };
 }

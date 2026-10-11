@@ -7,6 +7,7 @@ import { dayKey, plural } from '../util.js';
 import { rankFor, currentStreak, dailyGoal, achievementProgress, checkGoal, vacationLeft, activeVacation, startVacation, endVacation, shiftDay } from '../gamify.js';
 import { toast, confirmDialog, applyTheme } from '../ui.js';
 import { ttsSupported } from '../tts.js';
+import { syncSection } from './sync-section.js';
 import { view, section, progress, roman, fmtNum } from './common.js';
 
 export async function render(_, shell) {
@@ -18,6 +19,7 @@ export async function render(_, shell) {
   el.append(h('section', { class: 'section' }, h('h3', { class: 'section__title' }, 'Серия', frLabel), streakCalendar(state)));
   el.append(achievements(state));
   el.append(appearance(state));
+  el.append(syncSection(shell));
   el.append(settings(state, shell));
   return { el, title: 'Профиль', tab: 'profile' };
 }
